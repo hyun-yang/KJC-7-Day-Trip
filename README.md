@@ -1,2 +1,2 @@
-# Voyingo
-An AI-powered travel companion that helps you learn and use practical local phrases for every destination.
+# KJC 7-Day Chat
+The ultimate 1-week survival language guide for Korea, Japan, China travelers.
