@@ -107,6 +107,9 @@ unlinked_spec.ds
 # Coverage
 coverage/
 
+# Natural Earth source cache used by the country-outline generator.
+scripts/.ne_50m_countries.geojson
+
 # Symbols
 app.*.symbols
 
@@ -117,3 +120,13 @@ app.*.symbols
 !**/ios/**/default.perspectivev3
 !/packages/flutter_tools/test/data/dart_dependencies_test/**/.packages
 !/dev/ci/**/Gemfile.lock
+/task.md
+/spec.md
+/progress.md
+/AGENTS.md
+/.codegraph/
+/plans/
+/docs/
+/kjc_7day_chat.iml
+/.idea/
+/android/kjc_7day_chat_android.iml
