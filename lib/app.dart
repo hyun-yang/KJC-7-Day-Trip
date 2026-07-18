@@ -9,7 +9,7 @@ class KjcApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'KJC 7-Day Chat',
+      title: 'KJC 7-Day Trip',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF2E6B5E)),
         useMaterial3: true,

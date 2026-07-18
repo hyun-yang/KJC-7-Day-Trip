@@ -20,7 +20,7 @@ void main() {
       ).readAsStringSync();
 
       expect(manifest, contains('android.permission.INTERNET'));
-      expect(manifest, contains('android:label="KJC 7-Day Chat"'));
+      expect(manifest, contains('android:label="KJC 7-Day Trip"'));
     },
   );
 }

@@ -1,7 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.INTERNET" />
     <application
-        android:label="KJC 7-Day Chat"
+        android:label="KJC 7-Day Trip"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

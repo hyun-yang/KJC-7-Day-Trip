@@ -27,7 +27,7 @@ void main() {
       ),
     );
 
-    expect(find.text('KJC 7-Day Chat'), findsOneWidget);
+    expect(find.text('KJC 7-Day Trip'), findsOneWidget);
     expect(find.text('Where are you going?'), findsOneWidget);
 
     await tester.tap(find.text('Saved'));
@@ -39,7 +39,7 @@ void main() {
     await tester.tap(find.text('Travel'));
     await tester.pumpAndSettle();
 
-    expect(find.text('KJC 7-Day Chat'), findsOneWidget);
+    expect(find.text('KJC 7-Day Trip'), findsOneWidget);
   });
 
   testWidgets('opens Settings from both Travel and Saved app bars', (
