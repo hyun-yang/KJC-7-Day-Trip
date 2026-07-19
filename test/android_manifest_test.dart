@@ -50,29 +50,30 @@ void main() {
     }
   });
 
-  test('Android launch themes show KJC branding instead of Flutter branding', () {
-    final dayV31 = File(
-      'android/app/src/main/res/values-v31/styles.xml',
-    );
-    final nightV31 = File(
-      'android/app/src/main/res/values-night-v31/styles.xml',
-    );
-    final legacy = File(
-      'android/app/src/main/res/drawable/launch_background.xml',
-    ).readAsStringSync();
+  test(
+    'Android launch themes show KJC branding instead of Flutter branding',
+    () {
+      final dayV31 = File('android/app/src/main/res/values-v31/styles.xml');
+      final nightV31 = File(
+        'android/app/src/main/res/values-night-v31/styles.xml',
+      );
+      final legacy = File(
+        'android/app/src/main/res/drawable/launch_background.xml',
+      ).readAsStringSync();
 
-    expect(dayV31.existsSync(), isTrue);
-    expect(nightV31.existsSync(), isTrue);
-    for (final file in [dayV31, nightV31]) {
-      final xml = file.readAsStringSync();
-      expect(xml, contains('android:windowSplashScreenBackground'));
-      expect(xml, contains('@color/kjc_launch_background'));
-      expect(xml, contains('android:windowSplashScreenAnimatedIcon'));
-      expect(xml, contains('@mipmap/ic_launcher'));
-      expect(xml, contains('android:postSplashScreenTheme'));
-    }
-    expect(legacy, contains('@color/kjc_launch_background'));
-    expect(legacy, contains('@mipmap/ic_launcher'));
-    expect(legacy, isNot(contains('@android:color/white')));
-  });
+      expect(dayV31.existsSync(), isTrue);
+      expect(nightV31.existsSync(), isTrue);
+      for (final file in [dayV31, nightV31]) {
+        final xml = file.readAsStringSync();
+        expect(xml, contains('android:windowSplashScreenBackground'));
+        expect(xml, contains('@color/kjc_launch_background'));
+        expect(xml, contains('android:windowSplashScreenAnimatedIcon'));
+        expect(xml, contains('@mipmap/ic_launcher'));
+        expect(xml, isNot(contains('android:postSplashScreenTheme')));
+      }
+      expect(legacy, contains('@color/kjc_launch_background'));
+      expect(legacy, contains('@mipmap/ic_launcher'));
+      expect(legacy, isNot(contains('@android:color/white')));
+    },
+  );
 }
