@@ -1,7 +1,17 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
-  <rect width="1024" height="1024" rx="216" fill="#F7F4EE"/>
-  <path fill="#2D6B5C" d="M205 690 394 410l118 173 116-205 204 312Z"/>
-  <path fill="#164C3F" d="M128 724 343 489l97 112 72-88 191 211Z"/>
-  <path fill="#D64235" d="M293 385h438l-25 58H318Zm53 90h332v46H346Zm54 28h48v253h-48Zm176 0h48v253h-48Zm-208 77h288v42H368Z"/>
-  <path fill="#B92F2B" d="m271 385 35-49h412l35 49Z"/>
+  <defs>
+    <clipPath id="k-upper-half">
+      <rect width="1024" height="512"/>
+    </clipPath>
+    <clipPath id="k-lower-half">
+      <rect y="512" width="1024" height="512"/>
+    </clipPath>
+  </defs>
+  <rect id="icon-background" width="1024" height="1024" fill="#FFFFFF"/>
+  <g id="letter-k">
+    <path id="k-top" clip-path="url(#k-upper-half)" fill="#CD2E3A" d="M112 250h92v207l151-207h112L292 485l184 289H367L235 556l-31 41v177h-92Z"/>
+    <path id="k-bottom" clip-path="url(#k-lower-half)" fill="#0047A0" d="M112 250h92v207l151-207h112L292 485l184 289H367L235 556l-31 41v177h-92Z"/>
+  </g>
+  <path id="letter-j" fill="#BC002D" d="M435 250h221v359c0 113-63 175-169 175-76 0-132-35-164-98l79-46c18 37 43 56 79 56 54 0 80-29 80-92V339H435Z"/>
+  <path id="letter-c" fill="none" stroke="#DE2910" stroke-width="92" stroke-linecap="round" d="M907 363a190 190 0 1 0 0 298"/>
 </svg>

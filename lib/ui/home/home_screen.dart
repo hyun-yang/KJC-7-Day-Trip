@@ -80,10 +80,17 @@ class HomeScreen extends StatelessWidget {
           ],
           const SizedBox(height: 12),
           Center(
-            child: SvgPicture.asset(
-              'assets/illustrations/journey_line_splash.svg',
-              key: const ValueKey('travel-journey-line'),
-              width: 320,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 320),
+              child: AspectRatio(
+                aspectRatio: 390 / 280,
+                child: SvgPicture.asset(
+                  'assets/illustrations/journey_line_splash.svg',
+                  key: const ValueKey('travel-journey-line'),
+                  fit: BoxFit.contain,
+                  semanticsLabel: 'Flag-filled maps of Korea, Japan, and China',
+                ),
+              ),
             ),
           ),
         ],

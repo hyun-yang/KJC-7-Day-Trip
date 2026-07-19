@@ -38,6 +38,27 @@ void main() {
     expect(tester.getRect(journey).top, greaterThan(china.bottom));
   });
 
+  testWidgets('flag maps keep their order and fit a narrow Travel screen', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(240, 900));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await tester.pumpWidget(const MaterialApp(home: HomeScreen()));
+    await tester.drag(find.byType(ListView), const Offset(0, -500));
+    await tester.pump();
+
+    final maps = find.byKey(const ValueKey('travel-journey-line'));
+    final rect = tester.getRect(maps);
+
+    expect(
+      find.bySemanticsLabel('Flag-filled maps of Korea, Japan, and China'),
+      findsOneWidget,
+    );
+    expect(rect.left, greaterThanOrEqualTo(20));
+    expect(rect.right, lessThanOrEqualTo(220));
+    expect(rect.width / rect.height, closeTo(390 / 280, 0.01));
+  });
+
   testWidgets('choosing Japan opens the Japan map', (tester) async {
     await tester.pumpWidget(
       const ProviderScope(child: MaterialApp(home: HomeScreen())),
