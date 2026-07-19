@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../domain/entities/country.dart';
 import '../map/country_map_screen.dart';
@@ -77,6 +78,14 @@ class HomeScreen extends StatelessWidget {
             ),
             const SizedBox(height: 12),
           ],
+          const SizedBox(height: 12),
+          Center(
+            child: SvgPicture.asset(
+              'assets/illustrations/journey_line_splash.svg',
+              key: const ValueKey('travel-journey-line'),
+              width: 320,
+            ),
+          ),
         ],
       ),
     );

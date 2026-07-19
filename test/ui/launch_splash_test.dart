@@ -16,9 +16,17 @@ void main() {
     await tester.pumpWidget(app());
 
     expect(find.text('KJC 7-Day Trip'), findsOneWidget);
-    expect(find.byKey(const ValueKey('splash-background')), findsOneWidget);
+    expect(find.byKey(const ValueKey('splash-background')), findsNothing);
     expect(find.byKey(const ValueKey('splash-illustration')), findsOneWidget);
     expect(find.text('Where are you going?'), findsNothing);
+
+    final title = tester.getRect(find.text('KJC 7-Day Trip'));
+    final illustration = tester.getRect(
+      find.byKey(const ValueKey('splash-illustration')),
+    );
+    expect(title.center.dx, closeTo(illustration.center.dx, 1));
+    expect(title.top, greaterThan(illustration.top));
+    expect(title.center.dy, lessThan(illustration.center.dy));
   });
 
   testWidgets('opens Travel immediately when the splash is tapped', (

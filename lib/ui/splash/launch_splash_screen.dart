@@ -47,44 +47,38 @@ class _LaunchSplashScreenState extends State<LaunchSplashScreen> {
         onTap: _complete,
         child: Scaffold(
           backgroundColor: AtlasTheme.background,
-          body: Stack(
-            fit: StackFit.expand,
-            children: [
-              Opacity(
-                opacity: 0.38,
-                child: SvgPicture.asset(
-                  'assets/illustrations/journey_line_splash.svg',
-                  key: const ValueKey('splash-background'),
-                  fit: BoxFit.cover,
-                ),
-              ),
-              SafeArea(
-                child: Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(32),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
+          body: SafeArea(
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(32),
+                child: SizedBox(
+                  width: 390,
+                  child: AspectRatio(
+                    aspectRatio: 390 / 280,
+                    child: Stack(
+                      fit: StackFit.expand,
                       children: [
                         SvgPicture.asset(
                           'assets/illustrations/cultural_seals_splash.svg',
                           key: const ValueKey('splash-illustration'),
-                          width: 390,
                         ),
-                        const SizedBox(height: 28),
-                        Text(
-                          'KJC 7-Day Trip',
-                          style: Theme.of(context).textTheme.headlineMedium
-                              ?.copyWith(
-                                color: AtlasTheme.heading,
-                                fontWeight: FontWeight.w800,
-                              ),
+                        Align(
+                          alignment: const Alignment(0, -0.32),
+                          child: Text(
+                            'KJC 7-Day Trip',
+                            style: Theme.of(context).textTheme.headlineMedium
+                                ?.copyWith(
+                                  color: AtlasTheme.heading,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                          ),
                         ),
                       ],
                     ),
                   ),
                 ),
               ),
-            ],
+            ),
           ),
         ),
       ),

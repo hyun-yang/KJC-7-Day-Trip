@@ -26,6 +26,18 @@ void main() {
     expect(find.text('中国'), findsNothing);
   });
 
+  testWidgets('Travel decorates the space below China with the journey line', (
+    tester,
+  ) async {
+    await tester.pumpWidget(const MaterialApp(home: HomeScreen()));
+
+    final china = tester.getRect(find.byKey(const ValueKey('country-card-CN')));
+    final journey = find.byKey(const ValueKey('travel-journey-line'));
+
+    expect(journey, findsOneWidget);
+    expect(tester.getRect(journey).top, greaterThan(china.bottom));
+  });
+
   testWidgets('choosing Japan opens the Japan map', (tester) async {
     await tester.pumpWidget(
       const ProviderScope(child: MaterialApp(home: HomeScreen())),
