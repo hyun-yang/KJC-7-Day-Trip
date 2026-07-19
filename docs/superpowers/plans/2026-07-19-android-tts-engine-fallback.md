@@ -22,7 +22,7 @@
 - Modify: `lib/infrastructure/tts/system_line_speaker.dart:6-31`
 - Test: `test/infrastructure/system_line_speaker_test.dart`
 
-- [ ] **Step 1: Write failing adapter tests**
+- [x] **Step 1: Write failing adapter tests**
 
 Add these tests after `Flutter TTS requests Android audio focus`:
 
@@ -68,7 +68,7 @@ Future<dynamic> setEngine(String engine) async {
 }
 ```
 
-- [ ] **Step 2: Run the focused tests and verify RED**
+- [x] **Step 2: Run the focused tests and verify RED**
 
 Run:
 
@@ -79,7 +79,7 @@ flutter test test/infrastructure/system_line_speaker_test.dart
 Expected: compilation fails because `LineSpeechEngine` and
 `FlutterTtsSpeechEngine` do not define `getEngines` or `setEngine`.
 
-- [ ] **Step 3: Add the minimal adapter API**
+- [x] **Step 3: Add the minimal adapter API**
 
 Add to `LineSpeechEngine`:
 
@@ -114,7 +114,7 @@ Future<List<String>> getEngines() async => const [];
 Future<void> setEngine(String engine) async {}
 ```
 
-- [ ] **Step 4: Run the focused tests and verify GREEN**
+- [x] **Step 4: Run the focused tests and verify GREEN**
 
 Run:
 
@@ -124,7 +124,7 @@ flutter test test/infrastructure/system_line_speaker_test.dart
 
 Expected: all tests in the file pass.
 
-- [ ] **Step 5: Commit the adapter boundary**
+- [x] **Step 5: Commit the adapter boundary**
 
 ```bash
 git add lib/infrastructure/tts/system_line_speaker.dart test/infrastructure/system_line_speaker_test.dart
@@ -137,7 +137,7 @@ git commit -m "feat: expose installed Android TTS engines"
 - Modify: `lib/infrastructure/tts/system_line_speaker.dart:42-94`
 - Test: `test/infrastructure/system_line_speaker_test.dart`
 
-- [ ] **Step 1: Add a controllable engine fake**
+- [x] **Step 1: Add a controllable engine fake**
 
 Replace the no-op engine additions from Task 1 in `ControllableSpeechEngine`
 with recorded values while preserving its existing fields and methods:
@@ -180,7 +180,7 @@ Future<bool> speak(String text) async {
 }
 ```
 
-- [ ] **Step 2: Write the failing successful-fallback test**
+- [x] **Step 2: Write the failing successful-fallback test**
 
 Add:
 
@@ -205,7 +205,7 @@ test('Android falls back to Google TTS when locale is unavailable', () async {
 });
 ```
 
-- [ ] **Step 3: Run the focused test and verify RED**
+- [x] **Step 3: Run the focused test and verify RED**
 
 Run:
 
@@ -216,7 +216,7 @@ flutter test test/infrastructure/system_line_speaker_test.dart --plain-name "And
 Expected: compilation fails because `SystemLineSpeaker` has no `isAndroid`
 parameter, or the call throws the current unavailable-language exception.
 
-- [ ] **Step 4: Implement the minimal one-shot fallback**
+- [x] **Step 4: Implement the minimal one-shot fallback**
 
 Import Flutter foundation platform APIs:
 
@@ -270,7 +270,7 @@ Replace the first language-selection call in `speak`:
 final languageReady = await _prepareLanguage(country.ttsLocale, request);
 ```
 
-- [ ] **Step 5: Run the focused test and verify GREEN**
+- [x] **Step 5: Run the focused test and verify GREEN**
 
 Run:
 
@@ -280,7 +280,7 @@ flutter test test/infrastructure/system_line_speaker_test.dart --plain-name "And
 
 Expected: PASS.
 
-- [ ] **Step 6: Write failing boundary tests**
+- [x] **Step 6: Write failing boundary tests**
 
 Add:
 
@@ -381,7 +381,7 @@ test('rejected speech is not retried with another engine', () async {
 });
 ```
 
-- [ ] **Step 7: Run the full TTS test file**
+- [x] **Step 7: Run the full TTS test file**
 
 Run:
 
@@ -393,7 +393,7 @@ Expected: all tests pass. The tests introduced in Step 6 should pass without
 additional production code; if one fails, correct only the fallback boundary
 that the failing assertion identifies.
 
-- [ ] **Step 8: Format and commit the fallback behavior**
+- [x] **Step 8: Format and commit the fallback behavior**
 
 ```bash
 dart format lib/infrastructure/tts/system_line_speaker.dart test/infrastructure/system_line_speaker_test.dart
@@ -406,7 +406,7 @@ git commit -m "fix: fall back to Google TTS on Android"
 **Files:**
 - Modify: `docs/superpowers/plans/2026-07-19-android-tts-engine-fallback.md`
 
-- [ ] **Step 1: Run static analysis**
+- [x] **Step 1: Run static analysis**
 
 Run:
 
@@ -416,7 +416,7 @@ flutter analyze
 
 Expected: `No issues found!`
 
-- [ ] **Step 2: Run the complete automated suite**
+- [x] **Step 2: Run the complete automated suite**
 
 Run:
 
@@ -426,7 +426,7 @@ flutter test
 
 Expected: all tests pass.
 
-- [ ] **Step 3: Build the Android APK**
+- [x] **Step 3: Build the Android APK**
 
 Run:
 
@@ -436,7 +436,7 @@ flutter build apk
 
 Expected: `build/app/outputs/flutter-apk/app-release.apk` is produced.
 
-- [ ] **Step 4: Install the current debug build on the connected Samsung device**
+- [x] **Step 4: Install the current debug build on the connected Samsung device**
 
 Resolve one explicit Samsung serial from `adb devices -l`, then run:
 
@@ -447,7 +447,7 @@ flutter run -d '<samsung-device-serial>'
 Expected: the app launches successfully. Keep the Flutter process attached so
 runtime logs remain available.
 
-- [ ] **Step 5: Verify Japanese playback and audio focus**
+- [x] **Step 5: Verify Japanese playback and audio focus**
 
 Open the existing Japanese conversation and tap a speaker icon. Capture focused
 logs with:
@@ -462,7 +462,7 @@ Expected:
 - No `Audio is unavailable right now.` snackbar appears.
 - Logs show Google TTS playback and Android audio focus acquisition.
 
-- [ ] **Step 6: Mark this plan complete and commit execution records**
+- [x] **Step 6: Mark this plan complete and commit execution records**
 
 Mark every completed checkbox in this file, then run:
 
