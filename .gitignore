@@ -125,6 +125,7 @@ app.*.symbols
 /progress.md
 /AGENTS.md
 /.codegraph/
+/.worktrees/
 /plans/
 /docs/
 /kjc_7day_chat.iml
