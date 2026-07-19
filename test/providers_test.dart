@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kjc_7day_chat/application/generation_selection.dart';
 import 'package:kjc_7day_chat/domain/catalog/phrase_catalog.dart';
+import 'package:kjc_7day_chat/domain/entities/tourist_place.dart';
 import 'package:kjc_7day_chat/domain/providers/online_text_gen_exception.dart';
 import 'package:kjc_7day_chat/domain/providers/text_gen_provider.dart';
 import 'package:kjc_7day_chat/infrastructure/online/openai_text_gen_provider.dart';
@@ -96,6 +97,32 @@ void main() {
       city: city,
       category: category,
       subtopic: category.subtopics.first,
+      place: TouristPlace(
+        id: 1101,
+        cityId: city.id,
+        nameEn: 'Senso-ji Temple',
+        nameLocal: '浅草寺',
+        descriptionEn: 'Tokyo’s oldest temple.',
+        mapX: 0.73,
+        mapY: 0.27,
+        recommendedScenes: const [
+          RecommendedScene(
+            categoryId: 'sightseeing',
+            subtopicId: 'at-the-sights',
+            labelEn: 'At the sights',
+          ),
+          RecommendedScene(
+            categoryId: 'sightseeing',
+            subtopicId: 'photos',
+            labelEn: 'Photos & video',
+          ),
+          RecommendedScene(
+            categoryId: 'sightseeing',
+            subtopicId: 'directions',
+            labelEn: 'Asking for directions',
+          ),
+        ],
+      ),
     );
     final container = ProviderContainer(
       overrides: [
@@ -108,7 +135,10 @@ void main() {
     expect(await container.read(conversationsProvider.future), isEmpty);
     await container.read(generationActionProvider)(selection);
 
-    expect(await container.read(conversationsProvider.future), hasLength(1));
+    final conversations = await container.read(conversationsProvider.future);
+    expect(conversations, hasLength(1));
+    expect(conversations.single.placeId, 1101);
+    expect(conversations.single.placeName, 'Senso-ji Temple');
   });
 }
 

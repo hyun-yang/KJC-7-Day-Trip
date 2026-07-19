@@ -3,6 +3,7 @@ import '../domain/entities/city.dart';
 import '../domain/entities/conversation.dart';
 import '../domain/entities/country.dart';
 import '../domain/entities/native_language.dart';
+import '../domain/entities/tourist_place.dart';
 import '../domain/generation/generated_conversation.dart';
 import '../domain/generation/prompt_builder.dart';
 import '../domain/providers/text_gen_provider.dart';
@@ -30,6 +31,7 @@ class GenerationOrchestrator {
     required PhraseCategory category,
     required Subtopic subtopic,
     required NativeLanguage nativeLanguage,
+    TouristPlace? place,
   }) async {
     final prompt = PromptBuilder.build(
       country: country,
@@ -37,6 +39,7 @@ class GenerationOrchestrator {
       category: category,
       subtopic: subtopic,
       nativeLanguage: nativeLanguage,
+      place: place,
     );
 
     GeneratedConversation generated;
@@ -54,6 +57,8 @@ class GenerationOrchestrator {
 
     return _repo.insert(
       Conversation(
+        placeId: place?.id,
+        placeName: place?.nameEn,
         country: country,
         cityId: city.id,
         cityName: city.nameEn,

@@ -6,7 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/entities/city.dart';
 import '../../domain/entities/country.dart';
 import '../../providers.dart';
-import '../category/category_screen.dart';
+import '../travel/city_atlas_screen.dart';
 import 'city_marker_layout.dart';
 import 'country_map_painter.dart';
 import 'country_outline.dart';
@@ -138,7 +138,7 @@ class _CountryMapContent extends StatelessWidget {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         settings: RouteSettings(arguments: city),
-        builder: (_) => CategoryScreen(city: city),
+        builder: (_) => CityAtlasScreen(city: city),
       ),
     );
   }

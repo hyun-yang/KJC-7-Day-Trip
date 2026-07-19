@@ -4,6 +4,8 @@ import 'native_language.dart';
 class Conversation {
   const Conversation({
     this.id,
+    this.placeId,
+    this.placeName,
     required this.country,
     required this.cityId,
     required this.cityName,
@@ -16,6 +18,8 @@ class Conversation {
   });
 
   final int? id;
+  final int? placeId;
+  final String? placeName;
   final Country country;
   final int cityId;
   final String cityName;

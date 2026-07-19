@@ -2,6 +2,7 @@ import '../catalog/phrase_catalog.dart';
 import '../entities/city.dart';
 import '../entities/country.dart';
 import '../entities/native_language.dart';
+import '../entities/tourist_place.dart';
 
 class PromptBuilder {
   /// 언어 혼입을 막는 명시적 언어 규칙 + JSON 뼈대 + 형식 예시 1줄 구조
@@ -12,6 +13,7 @@ class PromptBuilder {
     required PhraseCategory category,
     required Subtopic subtopic,
     required NativeLanguage nativeLanguage,
+    TouristPlace? place,
   }) {
     final target = country.targetLanguage;
     final native = nativeLanguage.promptName;
@@ -24,6 +26,9 @@ class PromptBuilder {
     final translationRule = sameLanguage
         ? '- "translation": the languages are the same — copy "text" unchanged.'
         : '- "translation": a natural $native translation of "text". $native only.';
+    final placeContext = place == null
+        ? ''
+        : '\n- Tourist place: ${place.nameEn} (${place.nameLocal})';
 
     return '''
 You are a phrasebook writer for travelers. Write one natural $target conversation between speaker 1 (a traveler visiting ${city.nameEn}, ${country.labelEn}) and speaker 2 (a local, e.g. staff or passer-by).
@@ -31,7 +36,7 @@ You are a phrasebook writer for travelers. Write one natural $target conversatio
 ## Scene
 - Situation: ${category.labelEn} — ${subtopic.labelEn}
 - Details: ${subtopic.promptHint}
-- Location: ${city.nameEn} (${city.nameLocal})
+- Location: ${city.nameEn} (${city.nameLocal})$placeContext
 
 ## Style
 - Survival phrases for a 1-week trip: short, practical, polite everyday speech.

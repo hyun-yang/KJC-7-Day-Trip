@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:kjc_7day_chat/domain/catalog/phrase_catalog.dart';
 import 'package:kjc_7day_chat/domain/entities/country.dart';
 import 'package:kjc_7day_chat/domain/entities/native_language.dart';
+import 'package:kjc_7day_chat/domain/entities/tourist_place.dart';
 import 'package:kjc_7day_chat/domain/generation/prompt_builder.dart';
 import 'package:kjc_7day_chat/infrastructure/seed/cities_seed.dart';
 
@@ -50,5 +51,57 @@ void main() {
       nativeLanguage: NativeLanguage.korean,
     );
     expect(prompt, contains('copy "text" unchanged'));
+  });
+
+  test('관광지를 선택하면 영문명과 현지명이 장면 맥락에 포함된다', () {
+    final place = TouristPlace(
+      id: 1101,
+      cityId: tokyo.id,
+      nameEn: 'Senso-ji Temple',
+      nameLocal: '浅草寺',
+      descriptionEn: 'Tokyo’s oldest temple.',
+      mapX: 0.73,
+      mapY: 0.27,
+      recommendedScenes: const [
+        RecommendedScene(
+          categoryId: 'sightseeing',
+          subtopicId: 'at-the-sights',
+          labelEn: 'At the sights',
+        ),
+        RecommendedScene(
+          categoryId: 'sightseeing',
+          subtopicId: 'photos',
+          labelEn: 'Photos & video',
+        ),
+        RecommendedScene(
+          categoryId: 'sightseeing',
+          subtopicId: 'directions',
+          labelEn: 'Asking for directions',
+        ),
+      ],
+    );
+
+    final prompt = PromptBuilder.build(
+      country: Country.japan,
+      city: tokyo,
+      category: findCategory('sightseeing'),
+      subtopic: findSubtopic('sightseeing', 'at-the-sights'),
+      nativeLanguage: NativeLanguage.english,
+      place: place,
+    );
+
+    expect(prompt, contains('- Tourist place: Senso-ji Temple (浅草寺)'));
+  });
+
+  test('관광지를 선택하지 않으면 기존 프롬프트에 관광지 맥락이 없다', () {
+    final prompt = PromptBuilder.build(
+      country: Country.japan,
+      city: tokyo,
+      category: findCategory('hotel'),
+      subtopic: findSubtopic('hotel', 'check-in'),
+      nativeLanguage: NativeLanguage.korean,
+    );
+
+    expect(prompt, isNot(contains('Tourist place')));
   });
 }

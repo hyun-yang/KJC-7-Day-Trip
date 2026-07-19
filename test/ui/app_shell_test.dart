@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -13,11 +14,17 @@ import 'package:kjc_7day_chat/domain/settings/kjc_settings.dart';
 import 'package:kjc_7day_chat/infrastructure/tts/system_line_speaker.dart';
 import 'package:kjc_7day_chat/infrastructure/settings/api_key_store.dart';
 import 'package:kjc_7day_chat/infrastructure/settings/settings_repository.dart';
+import 'package:kjc_7day_chat/infrastructure/seed/cities_seed.dart';
 import 'package:kjc_7day_chat/providers.dart';
+import 'package:kjc_7day_chat/ui/generation/generation_screen.dart';
+import 'package:kjc_7day_chat/ui/practice/practice_screen.dart';
 import 'package:kjc_7day_chat/ui/settings/settings_screen.dart';
+import 'package:kjc_7day_chat/ui/theme/atlas_theme.dart';
 
 void main() {
-  testWidgets('switches between Travel and Saved tabs', (tester) async {
+  testWidgets('shows Travel, Practice, and Saved with the Atlas theme', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -29,6 +36,19 @@ void main() {
 
     expect(find.text('KJC 7-Day Trip'), findsOneWidget);
     expect(find.text('Where are you going?'), findsOneWidget);
+    expect(find.text('Travel'), findsOneWidget);
+    expect(find.text('Practice'), findsOneWidget);
+    expect(find.text('Saved'), findsOneWidget);
+    expect(find.byType(NavigationBar), findsOneWidget);
+    expect(
+      tester.widget<Scaffold>(find.byType(Scaffold).first).backgroundColor,
+      AtlasTheme.background,
+    );
+
+    await tester.tap(find.text('Practice'));
+    await tester.pumpAndSettle();
+    expect(find.byType(PracticeScreen), findsOneWidget);
+    expect(find.text('All situations'), findsOneWidget);
 
     await tester.tap(find.text('Saved'));
     await tester.pumpAndSettle();
@@ -40,6 +60,210 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('KJC 7-Day Trip'), findsOneWidget);
+  });
+
+  testWidgets('preserves per-tab routes and keeps global navigation visible', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          citiesProvider.overrideWith(
+            (ref, country) async => citiesSeed
+                .where((city) => city.country == country)
+                .toList(growable: false),
+          ),
+          conversationsProvider.overrideWith((ref) async => const []),
+        ],
+        child: const KjcApp(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('country-card-JP')));
+    await tester.pumpAndSettle();
+    expect(find.text('Explore Japan'), findsOneWidget);
+    expect(find.byType(NavigationBar), findsOneWidget);
+
+    await tester.tap(find.text('Practice'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('practice-group-cafe-dining')));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(const ValueKey('practice-scene-cafe-dining-0')),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('practice-city-1')));
+    await tester.pumpAndSettle();
+    expect(find.byType(GenerationScreen), findsOneWidget);
+    expect(find.byType(NavigationBar), findsOneWidget);
+
+    await tester.tap(find.text('Travel'));
+    await tester.pumpAndSettle();
+    expect(find.text('Explore Japan'), findsOneWidget);
+
+    await tester.tap(find.text('Practice'));
+    await tester.pumpAndSettle();
+    expect(find.byType(GenerationScreen), findsOneWidget);
+
+    await tester.tap(find.text('Practice'));
+    await tester.pumpAndSettle();
+    expect(find.byType(PracticeScreen), findsOneWidget);
+    expect(find.byType(GenerationScreen), findsNothing);
+  });
+
+  testWidgets('system Back pops the active nested tab route first', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          citiesProvider.overrideWith(
+            (ref, country) async => citiesSeed
+                .where((city) => city.country == country)
+                .toList(growable: false),
+          ),
+          conversationsProvider.overrideWith((ref) async => const []),
+        ],
+        child: const KjcApp(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Practice'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('practice-group-cafe-dining')));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(const ValueKey('practice-scene-cafe-dining-0')),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('practice-city-1')));
+    await tester.pumpAndSettle();
+    expect(find.byType(GenerationScreen), findsOneWidget);
+
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+
+    expect(find.byType(GenerationScreen), findsNothing);
+    expect(find.byType(PracticeScreen), findsOneWidget);
+    expect(
+      tester.widget<NavigationBar>(find.byType(NavigationBar)).selectedIndex,
+      1,
+    );
+  });
+
+  testWidgets(
+    'system Back returns non-Travel tab roots to Travel before exit',
+    (tester) async {
+      final platformCalls = <MethodCall>[];
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(SystemChannels.platform, (call) async {
+            platformCalls.add(call);
+            return null;
+          });
+      addTearDown(
+        () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(SystemChannels.platform, null),
+      );
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            conversationsProvider.overrideWith((ref) async => const []),
+          ],
+          child: const KjcApp(),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      for (final tab in ['Practice', 'Saved']) {
+        await tester.tap(find.text(tab));
+        await tester.pumpAndSettle();
+        await tester.binding.handlePopRoute();
+        await tester.pumpAndSettle();
+
+        expect(
+          tester
+              .widget<NavigationBar>(find.byType(NavigationBar))
+              .selectedIndex,
+          0,
+        );
+        expect(find.text('Where are you going?'), findsOneWidget);
+        expect(
+          platformCalls.where((call) => call.method == 'SystemNavigator.pop'),
+          isEmpty,
+        );
+      }
+
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+      expect(
+        platformCalls.where((call) => call.method == 'SystemNavigator.pop'),
+        hasLength(1),
+      );
+    },
+  );
+
+  testWidgets('bottom destinations expose semantic 44px touch targets', (
+    tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          conversationsProvider.overrideWith((ref) async => const []),
+        ],
+        child: const KjcApp(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final navigation = tester.widget<NavigationBar>(find.byType(NavigationBar));
+    expect(
+      navigation.destinations.cast<NavigationDestination>().map(
+        (destination) => destination.label,
+      ),
+      ['Travel', 'Practice', 'Saved'],
+    );
+    for (final label in ['Travel', 'Practice', 'Saved']) {
+      final destination = find.bySemanticsLabel(RegExp('^$label'));
+      expect(destination, findsOneWidget);
+      expect(
+        tester.getSemantics(destination).rect.height,
+        greaterThanOrEqualTo(44),
+      );
+    }
+    semantics.dispose();
+  });
+
+  testWidgets('system Back exits from the Travel root', (tester) async {
+    final platformCalls = <MethodCall>[];
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(SystemChannels.platform, (call) async {
+          platformCalls.add(call);
+          return null;
+        });
+    addTearDown(
+      () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(SystemChannels.platform, null),
+    );
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          conversationsProvider.overrideWith((ref) async => const []),
+        ],
+        child: const KjcApp(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+
+    expect(
+      platformCalls.where((call) => call.method == 'SystemNavigator.pop'),
+      hasLength(1),
+    );
   });
 
   testWidgets('opens Settings from both Travel and Saved app bars', (

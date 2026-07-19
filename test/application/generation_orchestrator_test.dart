@@ -3,6 +3,7 @@ import 'package:kjc_7day_chat/application/generation_orchestrator.dart';
 import 'package:kjc_7day_chat/domain/catalog/phrase_catalog.dart';
 import 'package:kjc_7day_chat/domain/entities/country.dart';
 import 'package:kjc_7day_chat/domain/entities/native_language.dart';
+import 'package:kjc_7day_chat/domain/entities/tourist_place.dart';
 import 'package:kjc_7day_chat/domain/providers/text_gen_provider.dart';
 import 'package:kjc_7day_chat/infrastructure/db/conversation_repository.dart';
 import 'package:kjc_7day_chat/infrastructure/fake/fake_text_gen_provider.dart';
@@ -113,6 +114,50 @@ void main() {
     expect(detail.lines.first.romanization, 'sumimasen.');
     expect(detail.lines.first.transliteration, '스미마셍');
     expect(detail.lines.first.translation, '실례합니다.');
+  });
+
+  test('passes tourist place context and saves its metadata', () async {
+    final textGen = _SequenceTextGen([_validJson]);
+    final place = TouristPlace(
+      id: 1101,
+      cityId: tokyo.id,
+      nameEn: 'Senso-ji Temple',
+      nameLocal: '浅草寺',
+      descriptionEn: 'Tokyo’s oldest temple.',
+      mapX: 0.73,
+      mapY: 0.27,
+      recommendedScenes: const [
+        RecommendedScene(
+          categoryId: 'sightseeing',
+          subtopicId: 'at-the-sights',
+          labelEn: 'At the sights',
+        ),
+        RecommendedScene(
+          categoryId: 'sightseeing',
+          subtopicId: 'photos',
+          labelEn: 'Photos & video',
+        ),
+        RecommendedScene(
+          categoryId: 'sightseeing',
+          subtopicId: 'directions',
+          labelEn: 'Asking for directions',
+        ),
+      ],
+    );
+
+    final id = await make(textGen).generateAndSave(
+      country: Country.japan,
+      city: tokyo,
+      category: findCategory('sightseeing'),
+      subtopic: findSubtopic('sightseeing', 'at-the-sights'),
+      nativeLanguage: NativeLanguage.korean,
+      place: place,
+    );
+
+    expect(textGen.prompts.single, contains('Senso-ji Temple (浅草寺)'));
+    final saved = (await repo.load(id)).conversation;
+    expect(saved.placeId, 1101);
+    expect(saved.placeName, 'Senso-ji Temple');
   });
 
   test('retries once with a correction after an invalid response', () async {

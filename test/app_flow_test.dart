@@ -10,6 +10,7 @@ import 'package:kjc_7day_chat/domain/entities/conversation.dart';
 import 'package:kjc_7day_chat/domain/entities/country.dart';
 import 'package:kjc_7day_chat/domain/entities/native_language.dart';
 import 'package:kjc_7day_chat/infrastructure/seed/cities_seed.dart';
+import 'package:kjc_7day_chat/infrastructure/seed/tourist_places_seed.dart';
 import 'package:kjc_7day_chat/providers.dart';
 import 'package:kjc_7day_chat/ui/generation/conversation_viewer_screen.dart';
 
@@ -18,8 +19,12 @@ void main() {
     'creates, saves, lists, and reopens a conversation through KjcApp',
     (tester) async {
       final tokyo = citiesSeed.firstWhere((city) => city.nameEn == 'Tokyo');
-      final hotel = kPhraseCatalog.firstWhere(
-        (category) => category.id == 'hotel',
+      final place = touristPlacesSeed.firstWhere(
+        (candidate) => candidate.cityId == tokyo.id,
+      );
+      final scene = place.recommendedScenes.first;
+      final sightseeing = kPhraseCatalog.firstWhere(
+        (category) => category.id == scene.categoryId,
       );
       final generation = Completer<int>();
       final saved = <Conversation>[];
@@ -27,12 +32,14 @@ void main() {
       GenerationSelection? receivedSelection;
       final conversation = Conversation(
         id: 42,
+        placeId: place.id,
+        placeName: place.nameEn,
         country: Country.japan,
         cityId: tokyo.id,
         cityName: tokyo.nameEn,
-        categoryId: hotel.id,
-        subtopicId: 'check-in',
-        subtopicLabel: 'Check-in (with or without a reservation)',
+        categoryId: sightseeing.id,
+        subtopicId: scene.subtopicId,
+        subtopicLabel: scene.labelEn,
         nativeLang: NativeLanguage.english,
         model: 'gpt-5.4-mini',
         createdAt: DateTime.utc(2026, 7, 18),
@@ -93,20 +100,19 @@ void main() {
       await tester.ensureVisible(tokyoChip);
       await tester.tap(tokyoChip);
       await tester.pumpAndSettle();
-      expect(find.text('Choose a situation'), findsOneWidget);
-
-      final hotelTile = find.byKey(const ValueKey('category-hotel'));
-      await tester.scrollUntilVisible(
-        hotelTile,
-        300,
-        scrollable: find.byType(Scrollable).last,
+      expect(
+        find.text('Choose a place to practise for your trip.'),
+        findsOneWidget,
       );
-      await tester.tap(hotelTile);
-      await tester.pumpAndSettle();
 
-      final checkIn = find.byKey(const ValueKey('subtopic-hotel-check-in'));
-      await tester.ensureVisible(checkIn);
-      await tester.tap(checkIn);
+      await tester.tap(find.byKey(ValueKey('place-row-${place.id}')));
+      await tester.pumpAndSettle();
+      final recommendedScene = find.byKey(
+        ValueKey('recommended-scene-${place.id}-0'),
+      );
+      await tester.ensureVisible(recommendedScene);
+      await tester.pumpAndSettle();
+      await tester.tap(recommendedScene);
       await tester.pumpAndSettle();
       expect(find.text('Generate Conversation'), findsOneWidget);
 
@@ -114,11 +120,15 @@ void main() {
       await tester.pump();
       expect(find.text('Generating conversation…'), findsOneWidget);
       expect(receivedSelection?.city, same(tokyo));
-      expect(receivedSelection?.category, same(hotel));
-      expect(receivedSelection?.subtopic.id, 'check-in');
+      expect(receivedSelection?.category, same(sightseeing));
+      expect(receivedSelection?.subtopic.id, scene.subtopicId);
+      expect(receivedSelection?.place, same(place));
 
       generation.complete(42);
       await tester.pumpAndSettle();
+
+      expect(saved.single.placeId, place.id);
+      expect(saved.single.placeName, place.nameEn);
 
       expect(find.byType(ConversationViewerScreen), findsOneWidget);
       expect(
@@ -137,25 +147,23 @@ void main() {
         expect(find.text('Translation $index'), findsOneWidget);
       }
 
-      await tester.pageBack();
+      await tester.binding.handlePopRoute();
       await tester.pumpAndSettle();
-      await tester.pageBack();
+      await tester.binding.handlePopRoute();
       await tester.pumpAndSettle();
-      await tester.pageBack();
+      await tester.binding.handlePopRoute();
       await tester.pumpAndSettle();
       await tester.tap(find.text('Saved'));
       await tester.pumpAndSettle();
 
       expect(find.text('Saved Conversations'), findsOneWidget);
-      expect(
-        find.text('Check-in (with or without a reservation)'),
-        findsOneWidget,
-      );
+      expect(find.text(scene.labelEn), findsOneWidget);
+      expect(find.text(place.nameEn), findsOneWidget);
       expect(find.text('🇯🇵 Japan'), findsOneWidget);
       expect(find.text('Tokyo'), findsOneWidget);
       expect(find.text('2026-07-18'), findsOneWidget);
 
-      await tester.tap(find.text('Check-in (with or without a reservation)'));
+      await tester.tap(find.text(scene.labelEn));
       await tester.pumpAndSettle();
 
       expect(find.byType(ConversationViewerScreen), findsOneWidget);

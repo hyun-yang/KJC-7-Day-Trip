@@ -20,6 +20,8 @@ City cityFromRow(Map<String, Object?> r) => City(
   lng: r['lng']! as double,
 );
 Map<String, Object?> conversationToRow(Conversation c) => {
+  'place_id': c.placeId,
+  'place_name': c.placeName,
   'country': c.country.dbValue,
   'city_id': c.cityId,
   'city_name': c.cityName,
@@ -32,6 +34,8 @@ Map<String, Object?> conversationToRow(Conversation c) => {
 };
 Conversation conversationFromRow(Map<String, Object?> r) => Conversation(
   id: r['id']! as int,
+  placeId: r['place_id'] as int?,
+  placeName: r['place_name'] as String?,
   country: Country.fromDb(r['country']! as String),
   cityId: r['city_id']! as int,
   cityName: r['city_name']! as String,

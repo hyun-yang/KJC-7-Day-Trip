@@ -5,6 +5,7 @@ import '../../domain/entities/conversation.dart';
 import '../../providers.dart';
 import '../generation/conversation_viewer_screen.dart';
 import '../settings/settings_screen.dart';
+import '../theme/atlas_theme.dart';
 
 class LibraryScreen extends ConsumerStatefulWidget {
   const LibraryScreen({super.key});
@@ -20,8 +21,15 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
   Widget build(BuildContext context) {
     final conversations = ref.watch(conversationsProvider);
     return Scaffold(
+      backgroundColor: AtlasTheme.background,
       appBar: AppBar(
-        title: const Text('Saved Conversations'),
+        title: const Text(
+          'Saved Conversations',
+          style: TextStyle(
+            color: AtlasTheme.heading,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
         actions: [
           IconButton(
             tooltip: 'Settings',
@@ -58,28 +66,41 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
               : Center(
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 720),
-                    child: ListView.separated(
+                    child: Padding(
                       padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-                      itemCount: items.length,
-                      separatorBuilder: (_, _) => const SizedBox(height: 8),
-                      itemBuilder: (context, index) {
-                        final conversation = items[index];
-                        return _ConversationCard(
-                          conversation: conversation,
-                          onOpen: () => Navigator.of(context).push(
-                            MaterialPageRoute<void>(
-                              builder: (_) => ConversationViewerScreen(
-                                conversationId: conversation.id!,
+                      child: Material(
+                        key: const ValueKey('saved-list-surface'),
+                        color: AtlasTheme.paper,
+                        shape: RoundedRectangleBorder(
+                          side: const BorderSide(color: AtlasTheme.line),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        clipBehavior: Clip.antiAlias,
+                        child: ListView.separated(
+                          padding: EdgeInsets.zero,
+                          itemCount: items.length,
+                          separatorBuilder: (_, _) =>
+                              const Divider(height: 1, color: AtlasTheme.line),
+                          itemBuilder: (context, index) {
+                            final conversation = items[index];
+                            return _ConversationRow(
+                              conversation: conversation,
+                              onOpen: () => Navigator.of(context).push(
+                                MaterialPageRoute<void>(
+                                  builder: (_) => ConversationViewerScreen(
+                                    conversationId: conversation.id!,
+                                  ),
+                                ),
                               ),
-                            ),
-                          ),
-                          onDelete: () =>
-                              _confirmDelete(context, ref, conversation),
-                          isDeleting: _pendingDeleteIds.contains(
-                            conversation.id,
-                          ),
-                        );
-                      },
+                              onDelete: () =>
+                                  _confirmDelete(context, ref, conversation),
+                              isDeleting: _pendingDeleteIds.contains(
+                                conversation.id,
+                              ),
+                            );
+                          },
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -138,8 +159,8 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
   }
 }
 
-class _ConversationCard extends StatelessWidget {
-  const _ConversationCard({
+class _ConversationRow extends StatelessWidget {
+  const _ConversationRow({
     required this.conversation,
     required this.onOpen,
     required this.onDelete,
@@ -158,38 +179,86 @@ class _ConversationCard extends StatelessWidget {
         '${date.year.toString().padLeft(4, '0')}-'
         '${date.month.toString().padLeft(2, '0')}-'
         '${date.day.toString().padLeft(2, '0')}';
-    return Card(
-      margin: EdgeInsets.zero,
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: isDeleting ? null : onOpen,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 8, 12),
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      conversation.subtopicLabel,
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      '${conversation.country.flag} '
-                      '${conversation.country.labelEn}',
-                    ),
-                    Text(conversation.cityName),
-                    Text(dateLabel),
-                  ],
+    final trimmedPlace = conversation.placeName?.trim();
+    final placeName = trimmedPlace == null || trimmedPlace.isEmpty
+        ? null
+        : trimmedPlace;
+    final locationLabel = placeName == null
+        ? conversation.cityName
+        : '$placeName, ${conversation.cityName}';
+    return ConstrainedBox(
+      constraints: const BoxConstraints(minHeight: 96),
+      child: Row(
+        children: [
+          Expanded(
+            child: Semantics(
+              button: true,
+              enabled: !isDeleting,
+              label: 'Open ${conversation.subtopicLabel} at $locationLabel',
+              excludeSemantics: true,
+              child: InkWell(
+                key: ValueKey('saved-conversation-${conversation.id}'),
+                onTap: isDeleting ? null : onOpen,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 13, 8, 13),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        conversation.subtopicLabel,
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(
+                              color: AtlasTheme.heading,
+                              fontWeight: FontWeight.w700,
+                            ),
+                      ),
+                      const SizedBox(height: 7),
+                      if (placeName != null) ...[
+                        Text(
+                          placeName,
+                          key: ValueKey('saved-place-${conversation.id}'),
+                          style: const TextStyle(
+                            color: AtlasTheme.green,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                      ],
+                      Text(
+                        conversation.cityName,
+                        style: const TextStyle(color: AtlasTheme.heading),
+                      ),
+                      Text(
+                        '${conversation.country.flag} '
+                        '${conversation.country.labelEn}',
+                        style: const TextStyle(color: AtlasTheme.muted),
+                      ),
+                      Text(
+                        dateLabel,
+                        style: const TextStyle(
+                          color: AtlasTheme.muted,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-              SizedBox.square(
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: Semantics(
+              button: true,
+              enabled: !isDeleting,
+              label: 'Delete ${conversation.subtopicLabel}',
+              excludeSemantics: true,
+              child: SizedBox.square(
                 dimension: 48,
                 child: IconButton(
                   key: ValueKey('delete-conversation-${conversation.id}'),
                   tooltip: 'Delete ${conversation.subtopicLabel}',
+                  color: AtlasTheme.muted,
                   onPressed: isDeleting ? null : onDelete,
                   icon: isDeleting
                       ? const SizedBox.square(
@@ -199,9 +268,9 @@ class _ConversationCard extends StatelessWidget {
                       : const Icon(Icons.delete_outline_rounded),
                 ),
               ),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }

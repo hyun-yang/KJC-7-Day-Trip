@@ -10,6 +10,7 @@ import 'package:kjc_7day_chat/domain/providers/line_speaker.dart';
 import 'package:kjc_7day_chat/providers.dart';
 import 'package:kjc_7day_chat/ui/generation/conversation_viewer_screen.dart';
 import 'package:kjc_7day_chat/ui/library/library_screen.dart';
+import 'package:kjc_7day_chat/ui/theme/atlas_theme.dart';
 
 void main() {
   Widget app(List<Override> overrides) => ProviderScope(
@@ -80,6 +81,119 @@ void main() {
       tester.getTopLeft(find.text('Checking in')).dy,
       lessThan(tester.getTopLeft(find.text('Ordering food')).dy),
     );
+  });
+
+  testWidgets('shows a saved place distinctly above its city', (tester) async {
+    final saved = conversation(
+      id: 3,
+      country: Country.japan,
+      city: 'Tokyo',
+      situation: 'At the sights',
+      placeId: 101,
+      placeName: 'Senso-ji',
+      createdAt: DateTime.utc(2026, 7, 18),
+    );
+
+    await tester.pumpWidget(
+      app([
+        conversationsProvider.overrideWith((ref) async => [saved]),
+      ]),
+    );
+    await tester.pumpAndSettle();
+
+    final place = find.byKey(const ValueKey('saved-place-3'));
+    expect(place, findsOneWidget);
+    expect(find.text('Senso-ji'), findsOneWidget);
+    expect(find.text('Tokyo'), findsOneWidget);
+    expect(
+      tester.getTopLeft(place).dy,
+      lessThan(tester.getTopLeft(find.text('Tokyo')).dy),
+    );
+  });
+
+  testWidgets(
+    'place-less and blank-place rows show city without a placeholder',
+    (tester) async {
+      final migrated = conversation(
+        id: 4,
+        country: Country.korea,
+        city: 'Seoul',
+        situation: 'Ordering',
+        createdAt: DateTime.utc(2026, 7, 17),
+      );
+      final blankPlace = conversation(
+        id: 5,
+        country: Country.china,
+        city: 'Beijing',
+        situation: 'Taking a taxi',
+        placeName: '   ',
+        createdAt: DateTime.utc(2026, 7, 16),
+      );
+
+      await tester.pumpWidget(
+        app([
+          conversationsProvider.overrideWith(
+            (ref) async => [migrated, blankPlace],
+          ),
+        ]),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const ValueKey('saved-place-4')), findsNothing);
+      expect(find.byKey(const ValueKey('saved-place-5')), findsNothing);
+      expect(find.text('Seoul'), findsOneWidget);
+      expect(find.text('Beijing'), findsOneWidget);
+      expect(find.text('No place'), findsNothing);
+      expect(find.text('Unknown place'), findsNothing);
+    },
+  );
+
+  testWidgets('uses an Atlas open list with semantic 44px actions', (
+    tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
+    final saved = conversation(
+      id: 6,
+      country: Country.japan,
+      city: 'Kyoto',
+      situation: 'Asking directions',
+      placeId: 102,
+      placeName: 'Fushimi Inari Taisha',
+      createdAt: DateTime.utc(2026, 7, 18),
+    );
+
+    await tester.pumpWidget(
+      app([
+        conversationsProvider.overrideWith((ref) async => [saved]),
+      ]),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      tester.widget<Scaffold>(find.byType(Scaffold).first).backgroundColor,
+      AtlasTheme.background,
+    );
+    final surface = tester.widget<Material>(
+      find.byKey(const ValueKey('saved-list-surface')),
+    );
+    expect(surface.color, AtlasTheme.paper);
+    expect(find.byType(Card), findsNothing);
+
+    final openAction = find.bySemanticsLabel(
+      'Open Asking directions at Fushimi Inari Taisha, Kyoto',
+    );
+    expect(openAction, findsOneWidget);
+    expect(
+      tester.getSemantics(openAction).rect.height,
+      greaterThanOrEqualTo(44),
+    );
+    final deleteAction = find.bySemanticsLabel('Delete Asking directions');
+    expect(deleteAction, findsOneWidget);
+    expect(
+      tester.getSemantics(deleteAction).rect.height,
+      greaterThanOrEqualTo(44),
+    );
+    semantics.dispose();
   });
 
   testWidgets('tapping a card opens the reusable viewer with its id', (
@@ -300,9 +414,13 @@ Conversation conversation({
   required Country country,
   required String city,
   required String situation,
+  int? placeId,
+  String? placeName,
   required DateTime createdAt,
 }) => Conversation(
   id: id,
+  placeId: placeId,
+  placeName: placeName,
   country: country,
   cityId: id,
   cityName: city,

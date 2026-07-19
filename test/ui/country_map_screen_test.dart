@@ -71,7 +71,10 @@ void main() {
     expect(observer.routes, hasLength(2));
     expect(observer.routes.last.settings.arguments, same(tokyo));
     expect(find.text('Tokyo'), findsOneWidget);
-    expect(find.text('Choose a situation'), findsOneWidget);
+    expect(
+      find.text('Choose a place to practise for your trip.'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('shows an accessible loading state while cities load', (

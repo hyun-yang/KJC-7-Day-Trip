@@ -8,6 +8,7 @@ import 'application/generation_selection.dart';
 import 'domain/entities/city.dart';
 import 'domain/entities/conversation.dart';
 import 'domain/entities/country.dart';
+import 'domain/entities/tourist_place.dart';
 import 'domain/providers/line_speaker.dart';
 import 'domain/providers/online_text_gen_exception.dart';
 import 'domain/providers/text_gen_provider.dart';
@@ -17,6 +18,7 @@ import 'infrastructure/db/conversation_repository.dart';
 import 'infrastructure/online/openai_text_gen_provider.dart';
 import 'infrastructure/settings/api_key_store.dart';
 import 'infrastructure/settings/settings_repository.dart';
+import 'infrastructure/tourist_place_repository.dart';
 import 'infrastructure/tts/system_line_speaker.dart';
 
 final databaseProvider = Provider<Database>(
@@ -42,6 +44,14 @@ final conversationsProvider = FutureProvider<List<Conversation>>(
 
 final citiesProvider = FutureProvider.family<List<City>, Country>(
   (ref, country) => ref.watch(cityRepositoryProvider).listByCountry(country),
+);
+
+final touristPlaceRepositoryProvider = Provider<TouristPlaceRepository>(
+  (ref) => TouristPlaceRepository(),
+);
+
+final touristPlacesProvider = FutureProvider.family<List<TouristPlace>, int>(
+  (ref, cityId) => ref.watch(touristPlaceRepositoryProvider).listByCity(cityId),
 );
 
 final settingsRepositoryProvider = Provider(
@@ -152,6 +162,7 @@ final generationActionProvider = Provider<GenerationAction>((ref) {
       category: selection.category,
       subtopic: selection.subtopic,
       nativeLanguage: ref.read(settingsProvider).nativeLanguage,
+      place: selection.place,
     );
     ref.invalidate(conversationsProvider);
     return id;
