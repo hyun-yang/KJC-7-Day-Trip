@@ -53,28 +53,28 @@ class _LaunchSplashScreenState extends State<LaunchSplashScreen> {
                 padding: const EdgeInsets.all(32),
                 child: SizedBox(
                   width: 390,
-                  child: AspectRatio(
-                    aspectRatio: 390 / 280,
-                    child: Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        SvgPicture.asset(
-                          'assets/illustrations/cultural_seals_splash.svg',
-                          key: const ValueKey('splash-illustration'),
-                        ),
-                        Align(
-                          alignment: const Alignment(0, -0.32),
-                          child: Text(
-                            'KJC 7-Day Trip',
-                            style: Theme.of(context).textTheme.headlineMedium
-                                ?.copyWith(
-                                  color: AtlasTheme.heading,
-                                  fontWeight: FontWeight.w800,
-                                ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'KJC 7-Day Trip',
+                        style: Theme.of(context).textTheme.headlineMedium
+                            ?.copyWith(
+                              color: AtlasTheme.heading,
+                              fontWeight: FontWeight.w800,
+                            ),
+                      ),
+                      const SizedBox(height: 32),
+                      Flexible(
+                        child: AspectRatio(
+                          aspectRatio: 390 / 280,
+                          child: SvgPicture.asset(
+                            'assets/illustrations/cultural_seals_splash.svg',
+                            key: const ValueKey('splash-illustration'),
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
               ),

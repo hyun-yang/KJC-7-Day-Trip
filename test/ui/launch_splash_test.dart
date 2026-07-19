@@ -25,8 +25,44 @@ void main() {
       find.byKey(const ValueKey('splash-illustration')),
     );
     expect(title.center.dx, closeTo(illustration.center.dx, 1));
-    expect(title.top, greaterThan(illustration.top));
-    expect(title.center.dy, lessThan(illustration.center.dy));
+    expect(title.bottom, lessThan(illustration.top));
+  });
+
+  testWidgets('separates the title and illustration with a 32px gap', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(390, 844));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await tester.pumpWidget(app());
+
+    final title = tester.getRect(find.text('KJC 7-Day Trip'));
+    final illustration = tester.getRect(
+      find.byKey(const ValueKey('splash-illustration')),
+    );
+
+    expect(title.center.dx, closeTo(illustration.center.dx, 1));
+    expect(illustration.top - title.bottom, closeTo(32, 0.01));
+  });
+
+  testWidgets('shrinks only the illustration on a short screen', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(390, 320));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await tester.pumpWidget(app());
+
+    final title = tester.getRect(find.text('KJC 7-Day Trip'));
+    final illustration = tester.getRect(
+      find.byKey(const ValueKey('splash-illustration')),
+    );
+
+    expect(illustration.top - title.bottom, closeTo(32, 0.01));
+    expect(title.center.dx, closeTo(illustration.center.dx, 1));
+    expect((title.top + illustration.bottom) / 2, closeTo(160, 1));
+    expect(illustration.width / illustration.height, closeTo(390 / 280, 0.01));
+    expect(illustration.width, lessThan(326));
   });
 
   testWidgets('opens Travel immediately when the splash is tapped', (
