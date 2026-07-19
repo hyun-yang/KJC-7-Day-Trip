@@ -159,6 +159,48 @@ void main() {
     expect(engine.texts, ['second']);
   });
 
+  test('stale Google TTS locale retry restores the previous engine', () async {
+    final secondLanguageResult = Completer<bool>();
+    final engine = ControllableSpeechEngine(
+      languageResults: const [false, true, true],
+      engines: const ['com.samsung.SMT', 'com.google.android.tts'],
+      engineSelectionResults: const [true, true],
+      secondLanguageCompleter: secondLanguageResult,
+    );
+    final speaker = SystemLineSpeaker(engine: engine, isAndroid: true);
+
+    final first = speaker.speak(
+      text: 'first',
+      country: Country.japan,
+      speaker: 1,
+    );
+    await Future<void>.delayed(Duration.zero);
+    engine.stopCalls.single.complete();
+    await pumpEventQueue();
+    expect(engine.languages, ['ja-JP', 'ja-JP']);
+    expect(engine.selectedEngines, ['com.google.android.tts']);
+
+    final second = speaker.speak(
+      text: 'second',
+      country: Country.korea,
+      speaker: 2,
+    );
+    secondLanguageResult.complete(true);
+    await pumpEventQueue();
+    expect(engine.selectedEngines, [
+      'com.google.android.tts',
+      'com.samsung.SMT',
+    ]);
+    expect(engine.stopCalls, hasLength(2));
+    engine.stopCalls.last.complete();
+    await Future.wait([first, second]);
+
+    expect(engine.currentEngine, 'com.samsung.SMT');
+    expect(engine.languages, ['ja-JP', 'ja-JP', 'ko-KR']);
+    expect(engine.pitches, [0.85]);
+    expect(engine.texts, ['second']);
+  });
+
   test('available locale keeps the current Android TTS engine', () async {
     final engine = ControllableSpeechEngine();
     final speaker = SystemLineSpeaker(engine: engine, isAndroid: true);
@@ -417,6 +459,7 @@ class ControllableSpeechEngine implements LineSpeechEngine {
     this.defaultEngine = 'com.samsung.SMT',
     this.engineSelectionResults = const [true],
     this.firstEngineSelectionCompleter,
+    this.secondLanguageCompleter,
   }) : currentEngine = defaultEngine;
 
   final List<bool> languageResults;
@@ -425,6 +468,7 @@ class ControllableSpeechEngine implements LineSpeechEngine {
   final String? defaultEngine;
   final List<bool> engineSelectionResults;
   final Completer<void>? firstEngineSelectionCompleter;
+  final Completer<bool>? secondLanguageCompleter;
   final stopCalls = <Completer<void>>[];
   final languages = <String>[];
   final selectedEngines = <String>[];
@@ -462,8 +506,12 @@ class ControllableSpeechEngine implements LineSpeechEngine {
   @override
   Future<bool> setLanguage(String language) async {
     languages.add(language);
-    if (_languageResultIndex >= languageResults.length) return false;
-    return languageResults[_languageResultIndex++];
+    final attempt = _languageResultIndex++;
+    if (attempt == 1 && secondLanguageCompleter != null) {
+      return secondLanguageCompleter!.future;
+    }
+    if (attempt >= languageResults.length) return false;
+    return languageResults[attempt];
   }
 
   @override

@@ -113,8 +113,11 @@ class SystemLineSpeaker implements LineSpeaker {
 
       try {
         final languageReady = await _engine.setLanguage(locale);
-        if (!languageReady) await _restoreEngine(previousEngine);
-        return languageReady;
+        if (request != _request || !languageReady) {
+          await _restoreEngine(previousEngine);
+          return false;
+        }
+        return true;
       } catch (_) {
         await _restoreEngine(previousEngine);
         return false;
