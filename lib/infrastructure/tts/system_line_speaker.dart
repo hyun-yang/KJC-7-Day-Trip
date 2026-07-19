@@ -5,9 +5,9 @@ import '../../domain/providers/line_speaker.dart';
 
 abstract interface class LineSpeechEngine {
   Future<void> stop();
-  Future<void> setLanguage(String language);
+  Future<bool> setLanguage(String language);
   Future<void> setPitch(double pitch);
-  Future<void> speak(String text);
+  Future<bool> speak(String text);
 }
 
 class FlutterTtsSpeechEngine implements LineSpeechEngine {
@@ -19,13 +19,24 @@ class FlutterTtsSpeechEngine implements LineSpeechEngine {
   Future<void> stop() async => _tts.stop();
 
   @override
-  Future<void> setLanguage(String language) async => _tts.setLanguage(language);
+  Future<bool> setLanguage(String language) async =>
+      await _tts.setLanguage(language) == 1;
 
   @override
   Future<void> setPitch(double pitch) async => _tts.setPitch(pitch);
 
   @override
-  Future<void> speak(String text) async => _tts.speak(text);
+  Future<bool> speak(String text) async =>
+      await _tts.speak(text, focus: true) == 1;
+}
+
+final class TtsPlaybackException implements Exception {
+  const TtsPlaybackException(this.message);
+
+  final String message;
+
+  @override
+  String toString() => 'TtsPlaybackException: $message';
 }
 
 class SystemLineSpeaker implements LineSpeaker {
@@ -50,11 +61,20 @@ class SystemLineSpeaker implements LineSpeaker {
       if (request != _request) return;
       await _engine.stop();
       if (request != _request) return;
-      await _engine.setLanguage(country.ttsLocale);
+      final languageReady = await _engine.setLanguage(country.ttsLocale);
       if (request != _request) return;
+      if (!languageReady) {
+        throw TtsPlaybackException(
+          'TTS language ${country.ttsLocale} is unavailable',
+        );
+      }
       await _engine.setPitch(_pitchBySpeaker[speaker] ?? 1.0);
       if (request != _request) return;
-      await _engine.speak(text);
+      final playbackStarted = await _engine.speak(text);
+      if (request != _request) return;
+      if (!playbackStarted) {
+        throw const TtsPlaybackException('TTS playback was rejected');
+      }
     });
     _continueAfter(operation);
     return operation;

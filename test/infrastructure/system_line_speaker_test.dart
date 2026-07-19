@@ -1,10 +1,43 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 import 'package:kjc_7day_chat/domain/entities/country.dart';
 import 'package:kjc_7day_chat/infrastructure/tts/system_line_speaker.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  test('Flutter TTS requests Android audio focus', () async {
+    final tts = RecordingFlutterTts();
+
+    await FlutterTtsSpeechEngine(tts).speak('你好');
+
+    expect(tts.spokenText, '你好');
+    expect(tts.requestedFocus, isTrue);
+  });
+
+  test('unavailable target language is reported as a speech failure', () async {
+    final tts = RecordingFlutterTts(languageResult: 0);
+    final speaker = SystemLineSpeaker(tts: tts);
+
+    await expectLater(
+      speaker.speak(text: 'こんにちは', country: Country.japan, speaker: 1),
+      throwsA(isA<Exception>()),
+    );
+    expect(tts.spokenText, isNull);
+  });
+
+  test('rejected platform playback is reported as a speech failure', () async {
+    final tts = RecordingFlutterTts(speakResult: 0);
+    final speaker = SystemLineSpeaker(tts: tts);
+
+    await expectLater(
+      speaker.speak(text: '안녕하세요', country: Country.korea, speaker: 2),
+      throwsA(isA<Exception>()),
+    );
+  });
+
   test(
     'rapid speaks use last-tap-wins without mixing engine settings',
     () async {
@@ -34,6 +67,31 @@ void main() {
   );
 }
 
+class RecordingFlutterTts extends FlutterTts {
+  RecordingFlutterTts({this.languageResult = 1, this.speakResult = 1});
+
+  final int languageResult;
+  final int speakResult;
+  String? spokenText;
+  bool? requestedFocus;
+
+  @override
+  Future<dynamic> stop() async => 1;
+
+  @override
+  Future<dynamic> setLanguage(String language) async => languageResult;
+
+  @override
+  Future<dynamic> setPitch(double pitch) async => 1;
+
+  @override
+  Future<dynamic> speak(String text, {bool focus = false}) async {
+    spokenText = text;
+    requestedFocus = focus;
+    return speakResult;
+  }
+}
+
 class ControllableSpeechEngine implements LineSpeechEngine {
   final stopCalls = <Completer<void>>[];
   final languages = <String>[];
@@ -48,11 +106,17 @@ class ControllableSpeechEngine implements LineSpeechEngine {
   }
 
   @override
-  Future<void> setLanguage(String language) async => languages.add(language);
+  Future<bool> setLanguage(String language) async {
+    languages.add(language);
+    return true;
+  }
 
   @override
   Future<void> setPitch(double pitch) async => pitches.add(pitch);
 
   @override
-  Future<void> speak(String text) async => texts.add(text);
+  Future<bool> speak(String text) async {
+    texts.add(text);
+    return true;
+  }
 }
