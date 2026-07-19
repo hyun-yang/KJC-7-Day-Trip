@@ -30,7 +30,7 @@ void main() {
         overrides: [
           conversationsProvider.overrideWith((ref) async => const []),
         ],
-        child: const KjcApp(),
+        child: const KjcApp(showSplash: false),
       ),
     );
 
@@ -75,7 +75,7 @@ void main() {
           ),
           conversationsProvider.overrideWith((ref) async => const []),
         ],
-        child: const KjcApp(),
+        child: const KjcApp(showSplash: false),
       ),
     );
     await tester.pumpAndSettle();
@@ -125,7 +125,7 @@ void main() {
           ),
           conversationsProvider.overrideWith((ref) async => const []),
         ],
-        child: const KjcApp(),
+        child: const KjcApp(showSplash: false),
       ),
     );
     await tester.pumpAndSettle();
@@ -171,7 +171,7 @@ void main() {
           overrides: [
             conversationsProvider.overrideWith((ref) async => const []),
           ],
-          child: const KjcApp(),
+          child: const KjcApp(showSplash: false),
         ),
       );
       await tester.pumpAndSettle();
@@ -213,7 +213,7 @@ void main() {
         overrides: [
           conversationsProvider.overrideWith((ref) async => const []),
         ],
-        child: const KjcApp(),
+        child: const KjcApp(showSplash: false),
       ),
     );
     await tester.pumpAndSettle();
@@ -252,7 +252,7 @@ void main() {
         overrides: [
           conversationsProvider.overrideWith((ref) async => const []),
         ],
-        child: const KjcApp(),
+        child: const KjcApp(showSplash: false),
       ),
     );
     await tester.pumpAndSettle();
@@ -275,7 +275,7 @@ void main() {
           conversationsProvider.overrideWith((ref) async => const []),
           apiKeyStoreProvider.overrideWithValue(InMemoryApiKeyStore()),
         ],
-        child: const KjcApp(),
+        child: const KjcApp(showSplash: false),
       ),
     );
     await tester.pumpAndSettle();

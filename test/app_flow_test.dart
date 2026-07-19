@@ -87,7 +87,7 @@ void main() {
               return savedDetail;
             }),
           ],
-          child: const KjcApp(),
+          child: const KjcApp(showSplash: false),
         ),
       );
       await tester.pumpAndSettle();

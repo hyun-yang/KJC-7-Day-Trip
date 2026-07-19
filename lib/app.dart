@@ -4,10 +4,20 @@ import 'package:flutter/services.dart';
 import 'ui/home/home_screen.dart';
 import 'ui/library/library_screen.dart';
 import 'ui/practice/practice_screen.dart';
+import 'ui/splash/launch_splash_screen.dart';
 import 'ui/theme/atlas_theme.dart';
 
-class KjcApp extends StatelessWidget {
-  const KjcApp({super.key});
+class KjcApp extends StatefulWidget {
+  const KjcApp({super.key, this.showSplash = true});
+
+  final bool showSplash;
+
+  @override
+  State<KjcApp> createState() => _KjcAppState();
+}
+
+class _KjcAppState extends State<KjcApp> {
+  late var _showSplash = widget.showSplash;
 
   @override
   Widget build(BuildContext context) {
@@ -51,7 +61,11 @@ class KjcApp extends StatelessWidget {
         dividerColor: AtlasTheme.line,
         useMaterial3: true,
       ),
-      home: const _RootScaffold(),
+      home: _showSplash
+          ? LaunchSplashScreen(
+              onComplete: () => setState(() => _showSplash = false),
+            )
+          : const _RootScaffold(),
     );
   }
 }
