@@ -13,7 +13,7 @@ void main() {
     for (final asset in assets) {
       final source = File(asset).readAsStringSync();
       expect(source, contains('<svg'));
-      expect(source, contains('viewBox='));
+      expect(source, contains('viewBox="0 0 390 280"'));
       expect(source, isNot(contains('<text')));
     }
   });
