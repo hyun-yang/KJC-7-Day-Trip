@@ -5,6 +5,7 @@ import '../../domain/entities/country.dart';
 import '../../domain/providers/line_speaker.dart';
 
 abstract interface class LineSpeechEngine {
+  Future<String?> getDefaultEngine();
   Future<List<String>> getEngines();
   Future<void> setEngine(String engine);
   Future<void> stop();
@@ -17,6 +18,12 @@ class FlutterTtsSpeechEngine implements LineSpeechEngine {
   FlutterTtsSpeechEngine([FlutterTts? tts]) : _tts = tts ?? FlutterTts();
 
   final FlutterTts _tts;
+
+  @override
+  Future<String?> getDefaultEngine() async {
+    final engine = await _tts.getDefaultEngine;
+    return engine is String ? engine : null;
+  }
 
   @override
   Future<List<String>> getEngines() async {
@@ -70,6 +77,12 @@ class SystemLineSpeaker implements LineSpeaker {
   static const _googleTtsEngine = 'com.google.android.tts';
   static const _pitchBySpeaker = {1: 1.1, 2: 0.85};
 
+  Future<void> _restoreEngine(String engine) async {
+    try {
+      await _engine.setEngine(engine);
+    } catch (_) {}
+  }
+
   Future<bool> _prepareLanguage(String locale, int request) async {
     try {
       if (await _engine.setLanguage(locale)) return true;
@@ -80,9 +93,32 @@ class SystemLineSpeaker implements LineSpeaker {
         return false;
       }
 
-      await _engine.setEngine(_googleTtsEngine);
-      if (request != _request) return false;
-      return await _engine.setLanguage(locale);
+      final previousEngine = await _engine.getDefaultEngine();
+      if (request != _request ||
+          previousEngine == null ||
+          previousEngine == _googleTtsEngine) {
+        return false;
+      }
+
+      try {
+        await _engine.setEngine(_googleTtsEngine);
+      } catch (_) {
+        await _restoreEngine(previousEngine);
+        return false;
+      }
+      if (request != _request) {
+        await _restoreEngine(previousEngine);
+        return false;
+      }
+
+      try {
+        final languageReady = await _engine.setLanguage(locale);
+        if (!languageReady) await _restoreEngine(previousEngine);
+        return languageReady;
+      } catch (_) {
+        await _restoreEngine(previousEngine);
+        return false;
+      }
     } catch (_) {
       return false;
     }

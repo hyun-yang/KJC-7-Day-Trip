@@ -37,6 +37,21 @@ void main() {
     expect(await FlutterTtsSpeechEngine(tts).getEngines(), isEmpty);
   });
 
+  test('Flutter TTS reports the Android default engine as a string', () async {
+    final tts = RecordingFlutterTts(defaultEngineResult: 'com.samsung.SMT');
+
+    expect(
+      await FlutterTtsSpeechEngine(tts).getDefaultEngine(),
+      'com.samsung.SMT',
+    );
+  });
+
+  test('Flutter TTS ignores a non-string Android default engine', () async {
+    final tts = RecordingFlutterTts(defaultEngineResult: 7);
+
+    expect(await FlutterTtsSpeechEngine(tts).getDefaultEngine(), isNull);
+  });
+
   test('Flutter TTS selects a requested engine', () async {
     final tts = RecordingFlutterTts();
 
@@ -102,6 +117,46 @@ void main() {
     expect(engine.selectedEngines, ['com.google.android.tts']);
     expect(engine.pitches, [1.1]);
     expect(engine.texts, ['こんにちは']);
+  });
+
+  test('stale Google TTS switch restores the previous engine', () async {
+    final firstEngineSelection = Completer<void>();
+    final engine = ControllableSpeechEngine(
+      languageResults: const [false, true],
+      engines: const ['com.samsung.SMT', 'com.google.android.tts'],
+      engineSelectionResults: const [true, true],
+      firstEngineSelectionCompleter: firstEngineSelection,
+    );
+    final speaker = SystemLineSpeaker(engine: engine, isAndroid: true);
+
+    final first = speaker.speak(
+      text: 'first',
+      country: Country.japan,
+      speaker: 1,
+    );
+    await Future<void>.delayed(Duration.zero);
+    engine.stopCalls.single.complete();
+    await pumpEventQueue();
+    expect(engine.selectedEngines, ['com.google.android.tts']);
+
+    final second = speaker.speak(
+      text: 'second',
+      country: Country.korea,
+      speaker: 2,
+    );
+    firstEngineSelection.complete();
+    await pumpEventQueue();
+    expect(engine.selectedEngines, [
+      'com.google.android.tts',
+      'com.samsung.SMT',
+    ]);
+    expect(engine.stopCalls, hasLength(2));
+    engine.stopCalls.last.complete();
+    await Future.wait([first, second]);
+
+    expect(engine.currentEngine, 'com.samsung.SMT');
+    expect(engine.languages, ['ja-JP', 'ko-KR']);
+    expect(engine.texts, ['second']);
   });
 
   test('available locale keeps the current Android TTS engine', () async {
@@ -170,6 +225,7 @@ void main() {
     final engine = ControllableSpeechEngine(
       languageResults: const [false, false],
       engines: const ['com.google.android.tts'],
+      engineSelectionResults: const [true, true],
     );
     final speaker = SystemLineSpeaker(engine: engine, isAndroid: true);
 
@@ -182,7 +238,11 @@ void main() {
     engine.stopCalls.single.complete();
 
     await expectLater(playback, throwsA(isA<TtsPlaybackException>()));
-    expect(engine.selectedEngines, ['com.google.android.tts']);
+    expect(engine.selectedEngines, [
+      'com.google.android.tts',
+      'com.samsung.SMT',
+    ]);
+    expect(engine.currentEngine, 'com.samsung.SMT');
     expect(engine.languages, ['ja-JP', 'ja-JP']);
     expect(engine.texts, isEmpty);
   });
@@ -191,7 +251,7 @@ void main() {
     final engine = ControllableSpeechEngine(
       languageResults: const [false],
       engines: const ['com.google.android.tts'],
-      failEngineSelection: true,
+      engineSelectionResults: const [false, true],
     );
     final speaker = SystemLineSpeaker(engine: engine, isAndroid: true);
 
@@ -204,9 +264,38 @@ void main() {
     engine.stopCalls.single.complete();
 
     await expectLater(playback, throwsA(isA<TtsPlaybackException>()));
-    expect(engine.selectedEngines, ['com.google.android.tts']);
+    expect(engine.selectedEngines, [
+      'com.google.android.tts',
+      'com.samsung.SMT',
+    ]);
+    expect(engine.currentEngine, 'com.samsung.SMT');
     expect(engine.texts, isEmpty);
   });
+
+  test(
+    'default Google TTS engine is not reinitialized after rejection',
+    () async {
+      final engine = ControllableSpeechEngine(
+        languageResults: const [false],
+        engines: const ['com.google.android.tts'],
+        defaultEngine: 'com.google.android.tts',
+      );
+      final speaker = SystemLineSpeaker(engine: engine, isAndroid: true);
+
+      final playback = speaker.speak(
+        text: 'こんにちは',
+        country: Country.japan,
+        speaker: 1,
+      );
+      await Future<void>.delayed(Duration.zero);
+      engine.stopCalls.single.complete();
+
+      await expectLater(playback, throwsA(isA<TtsPlaybackException>()));
+      expect(engine.selectedEngines, isEmpty);
+      expect(engine.languages, ['ja-JP']);
+      expect(engine.texts, isEmpty);
+    },
+  );
 
   test('rejected speech is not retried with another engine', () async {
     final engine = ControllableSpeechEngine(
@@ -278,12 +367,14 @@ class RecordingFlutterTts extends FlutterTts {
     this.languageResult = 1,
     this.speakResult = 1,
     this.enginesResult = const <Object>[],
+    this.defaultEngineResult,
     this.setEngineCompleter,
   });
 
   final int languageResult;
   final int speakResult;
   final Object? enginesResult;
+  final Object? defaultEngineResult;
   final Completer<dynamic>? setEngineCompleter;
   String? spokenText;
   bool? requestedFocus;
@@ -291,6 +382,9 @@ class RecordingFlutterTts extends FlutterTts {
 
   @override
   Future<dynamic> get getEngines async => enginesResult;
+
+  @override
+  Future<dynamic> get getDefaultEngine async => defaultEngineResult;
 
   @override
   Future<dynamic> setEngine(String engine) {
@@ -320,19 +414,28 @@ class ControllableSpeechEngine implements LineSpeechEngine {
     this.languageResults = const [true],
     this.engines = const [],
     this.speakResult = true,
-    this.failEngineSelection = false,
-  });
+    this.defaultEngine = 'com.samsung.SMT',
+    this.engineSelectionResults = const [true],
+    this.firstEngineSelectionCompleter,
+  }) : currentEngine = defaultEngine;
 
   final List<bool> languageResults;
   final List<String> engines;
   final bool speakResult;
-  final bool failEngineSelection;
+  final String? defaultEngine;
+  final List<bool> engineSelectionResults;
+  final Completer<void>? firstEngineSelectionCompleter;
   final stopCalls = <Completer<void>>[];
   final languages = <String>[];
   final selectedEngines = <String>[];
   final pitches = <double>[];
   final texts = <String>[];
+  String? currentEngine;
   int _languageResultIndex = 0;
+  int _engineSelectionIndex = 0;
+
+  @override
+  Future<String?> getDefaultEngine() async => defaultEngine;
 
   @override
   Future<List<String>> getEngines() async => engines;
@@ -340,7 +443,13 @@ class ControllableSpeechEngine implements LineSpeechEngine {
   @override
   Future<void> setEngine(String engine) async {
     selectedEngines.add(engine);
-    if (failEngineSelection) throw StateError('Engine selection failed');
+    currentEngine = engine;
+    final selection = _engineSelectionIndex++;
+    if (selection == 0) await firstEngineSelectionCompleter?.future;
+    if (selection >= engineSelectionResults.length ||
+        !engineSelectionResults[selection]) {
+      throw StateError('Engine selection failed');
+    }
   }
 
   @override
