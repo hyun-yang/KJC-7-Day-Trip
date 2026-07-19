@@ -17,6 +17,25 @@ void main() {
     expect(tts.requestedFocus, isTrue);
   });
 
+  test('Flutter TTS reports installed engines as strings', () async {
+    final tts = RecordingFlutterTts(
+      engines: ['com.samsung.SMT', 'com.google.android.tts', 7],
+    );
+
+    expect(await FlutterTtsSpeechEngine(tts).getEngines(), [
+      'com.samsung.SMT',
+      'com.google.android.tts',
+    ]);
+  });
+
+  test('Flutter TTS selects a requested engine', () async {
+    final tts = RecordingFlutterTts();
+
+    await FlutterTtsSpeechEngine(tts).setEngine('com.google.android.tts');
+
+    expect(tts.selectedEngine, 'com.google.android.tts');
+  });
+
   test('unavailable target language is reported as a speech failure', () async {
     final tts = RecordingFlutterTts(languageResult: 0);
     final speaker = SystemLineSpeaker(tts: tts);
@@ -80,12 +99,27 @@ void main() {
 }
 
 class RecordingFlutterTts extends FlutterTts {
-  RecordingFlutterTts({this.languageResult = 1, this.speakResult = 1});
+  RecordingFlutterTts({
+    this.languageResult = 1,
+    this.speakResult = 1,
+    this.engines = const <Object>[],
+  });
 
   final int languageResult;
   final int speakResult;
+  final List<Object> engines;
   String? spokenText;
   bool? requestedFocus;
+  String? selectedEngine;
+
+  @override
+  Future<dynamic> get getEngines async => engines;
+
+  @override
+  Future<dynamic> setEngine(String engine) async {
+    selectedEngine = engine;
+    return 1;
+  }
 
   @override
   Future<dynamic> stop() async => 1;
@@ -109,6 +143,12 @@ class ControllableSpeechEngine implements LineSpeechEngine {
   final languages = <String>[];
   final pitches = <double>[];
   final texts = <String>[];
+
+  @override
+  Future<List<String>> getEngines() async => const [];
+
+  @override
+  Future<void> setEngine(String engine) async {}
 
   @override
   Future<void> stop() {

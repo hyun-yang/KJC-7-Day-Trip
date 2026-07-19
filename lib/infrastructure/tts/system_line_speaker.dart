@@ -4,6 +4,8 @@ import '../../domain/entities/country.dart';
 import '../../domain/providers/line_speaker.dart';
 
 abstract interface class LineSpeechEngine {
+  Future<List<String>> getEngines();
+  Future<void> setEngine(String engine);
   Future<void> stop();
   Future<bool> setLanguage(String language);
   Future<void> setPitch(double pitch);
@@ -14,6 +16,16 @@ class FlutterTtsSpeechEngine implements LineSpeechEngine {
   FlutterTtsSpeechEngine([FlutterTts? tts]) : _tts = tts ?? FlutterTts();
 
   final FlutterTts _tts;
+
+  @override
+  Future<List<String>> getEngines() async {
+    final engines = await _tts.getEngines;
+    if (engines is! List) return const [];
+    return engines.whereType<String>().toList(growable: false);
+  }
+
+  @override
+  Future<void> setEngine(String engine) async => _tts.setEngine(engine);
 
   @override
   Future<void> stop() async => _tts.stop();
