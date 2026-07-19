@@ -19,13 +19,22 @@ void main() {
 
   test('Flutter TTS reports installed engines as strings', () async {
     final tts = RecordingFlutterTts(
-      engines: ['com.samsung.SMT', 'com.google.android.tts', 7],
+      enginesResult: ['com.samsung.SMT', 'com.google.android.tts', 7],
     );
 
-    expect(await FlutterTtsSpeechEngine(tts).getEngines(), [
-      'com.samsung.SMT',
-      'com.google.android.tts',
-    ]);
+    final engines = await FlutterTtsSpeechEngine(tts).getEngines();
+
+    expect(engines, ['com.samsung.SMT', 'com.google.android.tts']);
+    expect(
+      () => engines.add('com.example.tts'),
+      throwsA(isA<UnsupportedError>()),
+    );
+  });
+
+  test('Flutter TTS returns no engines for non-list plugin output', () async {
+    final tts = RecordingFlutterTts(enginesResult: 'not a list');
+
+    expect(await FlutterTtsSpeechEngine(tts).getEngines(), isEmpty);
   });
 
   test('Flutter TTS selects a requested engine', () async {
@@ -34,6 +43,26 @@ void main() {
     await FlutterTtsSpeechEngine(tts).setEngine('com.google.android.tts');
 
     expect(tts.selectedEngine, 'com.google.android.tts');
+  });
+
+  test('Flutter TTS waits for engine selection to complete', () async {
+    final pluginCompletion = Completer<dynamic>();
+    final tts = RecordingFlutterTts(setEngineCompleter: pluginCompletion);
+    var completed = false;
+
+    final selection = FlutterTtsSpeechEngine(
+      tts,
+    ).setEngine('com.google.android.tts');
+    selection.then((_) => completed = true);
+    await Future<void>.delayed(Duration.zero);
+
+    expect(tts.selectedEngine, 'com.google.android.tts');
+    expect(completed, isFalse);
+
+    pluginCompletion.complete(1);
+    await selection;
+
+    expect(completed, isTrue);
   });
 
   test('unavailable target language is reported as a speech failure', () async {
@@ -102,23 +131,25 @@ class RecordingFlutterTts extends FlutterTts {
   RecordingFlutterTts({
     this.languageResult = 1,
     this.speakResult = 1,
-    this.engines = const <Object>[],
+    this.enginesResult = const <Object>[],
+    this.setEngineCompleter,
   });
 
   final int languageResult;
   final int speakResult;
-  final List<Object> engines;
+  final Object? enginesResult;
+  final Completer<dynamic>? setEngineCompleter;
   String? spokenText;
   bool? requestedFocus;
   String? selectedEngine;
 
   @override
-  Future<dynamic> get getEngines async => engines;
+  Future<dynamic> get getEngines async => enginesResult;
 
   @override
-  Future<dynamic> setEngine(String engine) async {
+  Future<dynamic> setEngine(String engine) {
     selectedEngine = engine;
-    return 1;
+    return setEngineCompleter?.future ?? Future<dynamic>.value(1);
   }
 
   @override
