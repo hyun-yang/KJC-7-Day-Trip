@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 
 import '../../domain/entities/country.dart';
@@ -52,15 +53,40 @@ final class TtsPlaybackException implements Exception {
 }
 
 class SystemLineSpeaker implements LineSpeaker {
-  SystemLineSpeaker({LineSpeechEngine? engine, FlutterTts? tts})
-    : assert(engine == null || tts == null),
-      _engine = engine ?? FlutterTtsSpeechEngine(tts);
+  SystemLineSpeaker({
+    LineSpeechEngine? engine,
+    FlutterTts? tts,
+    bool? isAndroid,
+  }) : assert(engine == null || tts == null),
+       _engine = engine ?? FlutterTtsSpeechEngine(tts),
+       _isAndroid =
+           isAndroid ?? defaultTargetPlatform == TargetPlatform.android;
 
   final LineSpeechEngine _engine;
+  final bool _isAndroid;
   int _request = 0;
   Future<void> _tail = Future<void>.value();
 
+  static const _googleTtsEngine = 'com.google.android.tts';
   static const _pitchBySpeaker = {1: 1.1, 2: 0.85};
+
+  Future<bool> _prepareLanguage(String locale, int request) async {
+    try {
+      if (await _engine.setLanguage(locale)) return true;
+      if (!_isAndroid || request != _request) return false;
+
+      final engines = await _engine.getEngines();
+      if (request != _request || !engines.contains(_googleTtsEngine)) {
+        return false;
+      }
+
+      await _engine.setEngine(_googleTtsEngine);
+      if (request != _request) return false;
+      return await _engine.setLanguage(locale);
+    } catch (_) {
+      return false;
+    }
+  }
 
   @override
   Future<void> speak({
@@ -73,7 +99,7 @@ class SystemLineSpeaker implements LineSpeaker {
       if (request != _request) return;
       await _engine.stop();
       if (request != _request) return;
-      final languageReady = await _engine.setLanguage(country.ttsLocale);
+      final languageReady = await _prepareLanguage(country.ttsLocale, request);
       if (request != _request) return;
       if (!languageReady) {
         throw TtsPlaybackException(

@@ -82,6 +82,152 @@ void main() {
     expect(tts.spokenText, isNull);
   });
 
+  test('Android falls back to Google TTS when locale is unavailable', () async {
+    final engine = ControllableSpeechEngine(
+      languageResults: const [false, true],
+      engines: const ['com.samsung.SMT', 'com.google.android.tts'],
+    );
+    final speaker = SystemLineSpeaker(engine: engine, isAndroid: true);
+
+    final playback = speaker.speak(
+      text: 'こんにちは',
+      country: Country.japan,
+      speaker: 1,
+    );
+    await Future<void>.delayed(Duration.zero);
+    engine.stopCalls.single.complete();
+    await playback;
+
+    expect(engine.languages, ['ja-JP', 'ja-JP']);
+    expect(engine.selectedEngines, ['com.google.android.tts']);
+    expect(engine.pitches, [1.1]);
+    expect(engine.texts, ['こんにちは']);
+  });
+
+  test('available locale keeps the current Android TTS engine', () async {
+    final engine = ControllableSpeechEngine();
+    final speaker = SystemLineSpeaker(engine: engine, isAndroid: true);
+
+    final playback = speaker.speak(
+      text: '안녕하세요',
+      country: Country.korea,
+      speaker: 2,
+    );
+    await Future<void>.delayed(Duration.zero);
+    engine.stopCalls.single.complete();
+    await playback;
+
+    expect(engine.languages, ['ko-KR']);
+    expect(engine.selectedEngines, isEmpty);
+    expect(engine.texts, ['안녕하세요']);
+  });
+
+  test(
+    'non-Android does not change TTS engine after locale rejection',
+    () async {
+      final engine = ControllableSpeechEngine(
+        languageResults: const [false],
+        engines: const ['com.google.android.tts'],
+      );
+      final speaker = SystemLineSpeaker(engine: engine, isAndroid: false);
+
+      final playback = speaker.speak(
+        text: 'こんにちは',
+        country: Country.japan,
+        speaker: 1,
+      );
+      await Future<void>.delayed(Duration.zero);
+      engine.stopCalls.single.complete();
+
+      await expectLater(playback, throwsA(isA<TtsPlaybackException>()));
+      expect(engine.languages, ['ja-JP']);
+      expect(engine.selectedEngines, isEmpty);
+    },
+  );
+
+  test('missing Google TTS reports unavailable locale', () async {
+    final engine = ControllableSpeechEngine(
+      languageResults: const [false],
+      engines: const ['com.samsung.SMT'],
+    );
+    final speaker = SystemLineSpeaker(engine: engine, isAndroid: true);
+
+    final playback = speaker.speak(
+      text: 'こんにちは',
+      country: Country.japan,
+      speaker: 1,
+    );
+    await Future<void>.delayed(Duration.zero);
+    engine.stopCalls.single.complete();
+
+    await expectLater(playback, throwsA(isA<TtsPlaybackException>()));
+    expect(engine.languages, ['ja-JP']);
+    expect(engine.selectedEngines, isEmpty);
+    expect(engine.texts, isEmpty);
+  });
+
+  test('failed Google TTS locale retry reports unavailable locale', () async {
+    final engine = ControllableSpeechEngine(
+      languageResults: const [false, false],
+      engines: const ['com.google.android.tts'],
+    );
+    final speaker = SystemLineSpeaker(engine: engine, isAndroid: true);
+
+    final playback = speaker.speak(
+      text: 'こんにちは',
+      country: Country.japan,
+      speaker: 1,
+    );
+    await Future<void>.delayed(Duration.zero);
+    engine.stopCalls.single.complete();
+
+    await expectLater(playback, throwsA(isA<TtsPlaybackException>()));
+    expect(engine.selectedEngines, ['com.google.android.tts']);
+    expect(engine.languages, ['ja-JP', 'ja-JP']);
+    expect(engine.texts, isEmpty);
+  });
+
+  test('failed Google TTS initialization reports unavailable locale', () async {
+    final engine = ControllableSpeechEngine(
+      languageResults: const [false],
+      engines: const ['com.google.android.tts'],
+      failEngineSelection: true,
+    );
+    final speaker = SystemLineSpeaker(engine: engine, isAndroid: true);
+
+    final playback = speaker.speak(
+      text: 'こんにちは',
+      country: Country.japan,
+      speaker: 1,
+    );
+    await Future<void>.delayed(Duration.zero);
+    engine.stopCalls.single.complete();
+
+    await expectLater(playback, throwsA(isA<TtsPlaybackException>()));
+    expect(engine.selectedEngines, ['com.google.android.tts']);
+    expect(engine.texts, isEmpty);
+  });
+
+  test('rejected speech is not retried with another engine', () async {
+    final engine = ControllableSpeechEngine(
+      engines: const ['com.google.android.tts'],
+      speakResult: false,
+    );
+    final speaker = SystemLineSpeaker(engine: engine, isAndroid: true);
+
+    final playback = speaker.speak(
+      text: '안녕하세요',
+      country: Country.korea,
+      speaker: 2,
+    );
+    await Future<void>.delayed(Duration.zero);
+    engine.stopCalls.single.complete();
+
+    await expectLater(playback, throwsA(isA<TtsPlaybackException>()));
+    expect(engine.selectedEngines, isEmpty);
+    expect(engine.texts, ['안녕하세요']);
+  });
+
   test('rejected platform playback is reported as a speech failure', () async {
     final tts = RecordingFlutterTts(speakResult: 0);
     final speaker = SystemLineSpeaker(tts: tts);
@@ -170,16 +316,32 @@ class RecordingFlutterTts extends FlutterTts {
 }
 
 class ControllableSpeechEngine implements LineSpeechEngine {
+  ControllableSpeechEngine({
+    this.languageResults = const [true],
+    this.engines = const [],
+    this.speakResult = true,
+    this.failEngineSelection = false,
+  });
+
+  final List<bool> languageResults;
+  final List<String> engines;
+  final bool speakResult;
+  final bool failEngineSelection;
   final stopCalls = <Completer<void>>[];
   final languages = <String>[];
+  final selectedEngines = <String>[];
   final pitches = <double>[];
   final texts = <String>[];
+  int _languageResultIndex = 0;
 
   @override
-  Future<List<String>> getEngines() async => const [];
+  Future<List<String>> getEngines() async => engines;
 
   @override
-  Future<void> setEngine(String engine) async {}
+  Future<void> setEngine(String engine) async {
+    selectedEngines.add(engine);
+    if (failEngineSelection) throw StateError('Engine selection failed');
+  }
 
   @override
   Future<void> stop() {
@@ -191,7 +353,8 @@ class ControllableSpeechEngine implements LineSpeechEngine {
   @override
   Future<bool> setLanguage(String language) async {
     languages.add(language);
-    return true;
+    if (_languageResultIndex >= languageResults.length) return false;
+    return languageResults[_languageResultIndex++];
   }
 
   @override
@@ -200,6 +363,6 @@ class ControllableSpeechEngine implements LineSpeechEngine {
   @override
   Future<bool> speak(String text) async {
     texts.add(text);
-    return true;
+    return speakResult;
   }
 }
