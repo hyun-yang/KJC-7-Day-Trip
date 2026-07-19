@@ -154,6 +154,41 @@ void main() {
     },
   );
 
+  test('failed engine restoration leaves active engine unknown', () async {
+    final engine = ControllableSpeechEngine(
+      languageResults: const [false, false, false, true],
+      engines: const ['com.samsung.SMT', 'com.google.android.tts'],
+      engineSelectionResults: const [true, false, true],
+    );
+    final speaker = SystemLineSpeaker(engine: engine, isAndroid: true);
+
+    final first = speaker.speak(
+      text: 'first',
+      country: Country.japan,
+      speaker: 1,
+    );
+    await Future<void>.delayed(Duration.zero);
+    engine.stopCalls.single.complete();
+    await expectLater(first, throwsA(isA<TtsPlaybackException>()));
+
+    final second = speaker.speak(
+      text: 'second',
+      country: Country.korea,
+      speaker: 2,
+    );
+    await Future<void>.delayed(Duration.zero);
+    engine.stopCalls.last.complete();
+    await second;
+
+    expect(engine.selectedEngines, [
+      'com.google.android.tts',
+      'com.samsung.SMT',
+      'com.google.android.tts',
+    ]);
+    expect(engine.languages, ['ja-JP', 'ja-JP', 'ko-KR', 'ko-KR']);
+    expect(engine.texts, ['second']);
+  });
+
   test('stale Google TTS switch restores the previous engine', () async {
     final firstEngineSelection = Completer<void>();
     final engine = ControllableSpeechEngine(

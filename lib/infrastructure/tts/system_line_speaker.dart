@@ -79,6 +79,7 @@ class SystemLineSpeaker implements LineSpeaker {
   static const _pitchBySpeaker = {1: 1.1, 2: 0.85};
 
   Future<void> _restoreEngine(String engine) async {
+    _activeEngine = null;
     try {
       await _engine.setEngine(engine);
       _activeEngine = engine;
