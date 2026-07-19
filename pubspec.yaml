@@ -44,6 +44,15 @@ dev_dependencies:
     sdk: flutter
 
   flutter_lints: ^5.0.0
+  flutter_launcher_icons: 0.14.4
+
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path: assets/branding/kjc_launcher_icon.png
+  adaptive_icon_background: '#F7F4EE'
+  adaptive_icon_foreground: assets/branding/kjc_launcher_foreground.png
+  adaptive_icon_monochrome: assets/branding/kjc_launcher_foreground.png
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
