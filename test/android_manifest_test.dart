@@ -72,7 +72,8 @@ void main() {
         expect(xml, isNot(contains('android:postSplashScreenTheme')));
       }
       expect(legacy, contains('@color/kjc_launch_background'));
-      expect(legacy, contains('@mipmap/ic_launcher'));
+      expect(legacy, contains('@drawable/ic_launcher_foreground'));
+      expect(legacy, isNot(contains('@mipmap/ic_launcher')));
       expect(legacy, isNot(contains('@android:color/white')));
     },
   );

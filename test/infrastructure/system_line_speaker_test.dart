@@ -23,7 +23,13 @@ void main() {
 
     await expectLater(
       speaker.speak(text: 'こんにちは', country: Country.japan, speaker: 1),
-      throwsA(isA<Exception>()),
+      throwsA(
+        isA<TtsPlaybackException>().having(
+          (error) => error.message,
+          'message',
+          'TTS language ja-JP is unavailable',
+        ),
+      ),
     );
     expect(tts.spokenText, isNull);
   });
@@ -34,7 +40,13 @@ void main() {
 
     await expectLater(
       speaker.speak(text: '안녕하세요', country: Country.korea, speaker: 2),
-      throwsA(isA<Exception>()),
+      throwsA(
+        isA<TtsPlaybackException>().having(
+          (error) => error.message,
+          'message',
+          'TTS playback was rejected',
+        ),
+      ),
     );
   });
 
