@@ -71,6 +71,7 @@ class SystemLineSpeaker implements LineSpeaker {
 
   final LineSpeechEngine _engine;
   final bool _isAndroid;
+  String? _activeEngine;
   int _request = 0;
   Future<void> _tail = Future<void>.value();
 
@@ -80,6 +81,7 @@ class SystemLineSpeaker implements LineSpeaker {
   Future<void> _restoreEngine(String engine) async {
     try {
       await _engine.setEngine(engine);
+      _activeEngine = engine;
     } catch (_) {}
   }
 
@@ -93,16 +95,16 @@ class SystemLineSpeaker implements LineSpeaker {
         return false;
       }
 
-      final previousEngine = await _engine.getDefaultEngine();
-      if (request != _request ||
-          previousEngine == null ||
-          previousEngine == _googleTtsEngine) {
-        return false;
-      }
+      final previousEngine = _activeEngine ?? await _engine.getDefaultEngine();
+      if (request != _request || previousEngine == null) return false;
+      _activeEngine ??= previousEngine;
+      if (previousEngine == _googleTtsEngine) return false;
 
       try {
         await _engine.setEngine(_googleTtsEngine);
+        _activeEngine = _googleTtsEngine;
       } catch (_) {
+        _activeEngine = null;
         await _restoreEngine(previousEngine);
         return false;
       }

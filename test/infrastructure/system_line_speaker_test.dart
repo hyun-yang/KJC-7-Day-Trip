@@ -119,6 +119,41 @@ void main() {
     expect(engine.texts, ['こんにちは']);
   });
 
+  test(
+    'successful fallback remains the active engine for later requests',
+    () async {
+      final engine = ControllableSpeechEngine(
+        languageResults: const [false, true, false, false],
+        engines: const ['com.samsung.SMT', 'com.google.android.tts'],
+        engineSelectionResults: const [true, true, true],
+      );
+      final speaker = SystemLineSpeaker(engine: engine, isAndroid: true);
+
+      final first = speaker.speak(
+        text: 'first',
+        country: Country.japan,
+        speaker: 1,
+      );
+      await Future<void>.delayed(Duration.zero);
+      engine.stopCalls.single.complete();
+      await first;
+
+      final second = speaker.speak(
+        text: 'second',
+        country: Country.korea,
+        speaker: 2,
+      );
+      await Future<void>.delayed(Duration.zero);
+      engine.stopCalls.last.complete();
+
+      await expectLater(second, throwsA(isA<TtsPlaybackException>()));
+      expect(engine.selectedEngines, ['com.google.android.tts']);
+      expect(engine.currentEngine, 'com.google.android.tts');
+      expect(engine.pitches, [1.1]);
+      expect(engine.texts, ['first']);
+    },
+  );
+
   test('stale Google TTS switch restores the previous engine', () async {
     final firstEngineSelection = Completer<void>();
     final engine = ControllableSpeechEngine(
