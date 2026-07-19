@@ -22,6 +22,7 @@ class _KjcAppState extends State<KjcApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'KJC 7-Day Trip',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(

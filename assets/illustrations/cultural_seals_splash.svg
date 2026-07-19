@@ -1,26 +1,162 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 390 280" fill="none">
-  <rect width="390" height="280" rx="30" fill="#F8F5EF"/>
-  <path d="M44 141C86 96 129 96 171 141S256 186 346 112" stroke="#C74832" stroke-width="4" stroke-linecap="round" stroke-dasharray="2 11"/>
-  <g>
-    <circle cx="86" cy="140" r="62" fill="#FFFDF8" stroke="#153C33" stroke-width="3"/>
-    <circle cx="86" cy="140" r="51" stroke="#0B5246" stroke-width="2" stroke-dasharray="3 6"/>
-    <path d="M48 143C58 124 68 124 78 143S98 162 108 143S128 124 138 143" stroke="#0B5246" stroke-width="7" stroke-linecap="round"/>
-    <path d="M49 162C59 143 69 143 79 162S99 181 109 162S129 143 139 162" stroke="#153C33" stroke-width="3" stroke-linecap="round"/>
-    <circle cx="51" cy="111" r="5" fill="#C74832"/>
-  </g>
-  <g>
-    <circle cx="195" cy="140" r="62" fill="#FFFDF8" stroke="#153C33" stroke-width="3"/>
-    <circle cx="195" cy="140" r="51" stroke="#0B5246" stroke-width="2" stroke-dasharray="3 6"/>
-    <circle cx="215" cy="113" r="13" fill="#C74832"/>
-    <path d="M155 164L191 118L229 164" fill="#F8F5EF" stroke="#153C33" stroke-width="3" stroke-linejoin="round"/>
-    <path d="M166 146H217L211 136H172Z" fill="#C74832" stroke="#153C33" stroke-width="2" stroke-linejoin="round"/>
-    <path d="M190 126V151M178 151V164M202 151V164" stroke="#0B5246" stroke-width="4" stroke-linecap="round"/>
-  </g>
-  <g>
-    <circle cx="304" cy="140" r="62" fill="#FFFDF8" stroke="#153C33" stroke-width="3"/>
-    <circle cx="304" cy="140" r="51" stroke="#0B5246" stroke-width="2" stroke-dasharray="3 6"/>
-    <path d="M263 169L281 145L294 154L309 126L342 169" fill="#0B5246"/>
-    <path d="M264 170H344M272 161H334M280 152H326M290 143H318" stroke="#153C33" stroke-width="3" stroke-linecap="round"/>
-    <path d="M272 129L281 118L290 129L299 112L308 129" stroke="#C74832" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <defs>
+    <linearGradient id="skyTone" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F8F5EF"/>
+      <stop offset="1" stop-color="#EFE8DB"/>
+    </linearGradient>
+    <linearGradient id="seaTone" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#DCE7E0"/>
+      <stop offset="1" stop-color="#CBDCD2"/>
+    </linearGradient>
+    <clipPath id="clipTone"><rect width="390" height="280" rx="28"/></clipPath>
+  </defs>
+
+  <g clip-path="url(#clipTone)">
+    <rect width="390" height="280" fill="url(#skyTone)"/>
+
+    <!-- ===== FLAG : JAPAN (center, sky) — red disc only ===== -->
+    <g>
+      <circle cx="230" cy="70" r="24" fill="#BC002D"/>
+    </g>
+
+    <!-- ===== FLAG : KOREA (left, sky) — taegeuk disc only ===== -->
+    <g transform="translate(80 44)">
+      <!-- white base -->
+      <circle r="24" fill="#FFFFFF"/>
+      <!-- flipped horizontally (Y-axis mirror) -->
+      <g transform="scale(-1,1)">
+        <!-- red (top) region -->
+        <path d="M-24 0
+                 A24 24 0 0 1 24 0
+                 A12 12 0 0 1 0 0
+                 A12 12 0 0 0 -24 0 Z" fill="#CD2E3A"/>
+        <!-- blue (bottom) region -->
+        <path d="M24 0
+                 A24 24 0 0 1 -24 0
+                 A12 12 0 0 1 0 0
+                 A12 12 0 0 0 24 0 Z" fill="#0047A0"/>
+      </g>
+    </g>
+
+    <!-- ===== FLAG : CHINA (right, sky) ===== -->
+    <g transform="translate(340 56)">
+      <circle r="24" fill="#DE2910"/>
+      <!-- big star (pointing up), left of center -->
+      <path d="M0 -7L1.6 -2.2L6.7 -2.2L2.6 0.8L4.1 5.7L0 2.6L-4.1 5.7L-2.6 0.8L-6.7 -2.2L-1.6 -2.2Z" fill="#FFDE00" transform="translate(-8 0)"/>
+      <!-- four small stars, arc to the right, each tilted toward the big star -->
+      <g fill="#FFDE00">
+        <path d="M0 -2.4L0.55 -0.75L2.3 -0.75L0.9 0.3L1.4 2L0 0.95L-1.4 2L-0.9 0.3L-2.3 -0.75L-0.55 -0.75Z" transform="translate(2 -8) rotate(24)"/>
+        <path d="M0 -2.4L0.55 -0.75L2.3 -0.75L0.9 0.3L1.4 2L0 0.95L-1.4 2L-0.9 0.3L-2.3 -0.75L-0.55 -0.75Z" transform="translate(7 -3.5) rotate(46)"/>
+        <path d="M0 -2.4L0.55 -0.75L2.3 -0.75L0.9 0.3L1.4 2L0 0.95L-1.4 2L-0.9 0.3L-2.3 -0.75L-0.55 -0.75Z" transform="translate(7 3.5) rotate(70)"/>
+        <path d="M0 -2.4L0.55 -0.75L2.3 -0.75L0.9 0.3L1.4 2L0 0.95L-1.4 2L-0.9 0.3L-2.3 -0.75L-0.55 -0.75Z" transform="translate(2 8) rotate(92)"/>
+      </g>
+    </g>
+
+    <!-- ===== far right : CHINA — karst peaks, Great Wall, palace ===== -->
+    <g>
+      <path d="M282 208C288 140 298 108 314 82C328 112 338 164 340 208Z" fill="#0B5246" opacity=".55"/>
+      <path d="M322 208C330 152 342 122 356 100C368 126 376 172 378 208Z" fill="#0B5246" opacity=".8"/>
+      <path d="M356 208C362 168 370 146 380 128C388 148 390 182 390 208Z" fill="#153C33"/>
+      <path d="M276 172C298 164 318 176 340 168C360 162 376 170 390 164" stroke="#F8F5EF" stroke-width="4" stroke-linecap="round" opacity=".8"/>
+      <!-- great wall -->
+      <path d="M286 204C298 192 306 178 312 162C320 176 332 188 346 194C360 200 374 198 388 190" stroke="#153C33" stroke-width="6" stroke-linecap="round"/>
+      <rect x="308" y="152" width="9" height="12" rx="1.5" fill="#153C33"/>
+      <rect x="382" y="182" width="9" height="12" rx="1.5" fill="#153C33"/>
+      <!-- palace on ridge -->
+      <g stroke="#153C33" stroke-width="1.5" stroke-linejoin="round">
+        <path d="M334 236H386L382 226H338Z" fill="#E5DBC8"/>
+        <path d="M340 226H380V210H340Z" fill="#0B5246"/>
+        <path d="M332 210C344 215 352 215 364 210C372 213 378 213 388 210L376 198H344Z" fill="#E5DBC8"/>
+        <path d="M360 188L370 198H350Z" fill="#E5DBC8"/>
+      </g>
+      <ellipse cx="344" cy="220" rx="4.5" ry="5.5" fill="#C74832" stroke="#153C33"/>
+      <ellipse cx="376" cy="220" rx="4.5" ry="5.5" fill="#C74832" stroke="#153C33"/>
+      <!-- auspicious cloud (moved to clear sky, no longer overlapping China flag) -->
+      <path d="M282 120C282 113 292 111 294 117C299 112 308 116 306 123C311 123 313 130 308 132H284C279 130 279 124 282 120Z" fill="#FFFFFF" opacity=".9"/>
+    </g>
+
+    <!-- ===== center : JAPAN — Fuji, temple, sakura ===== -->
+    <g>
+      <path d="M118 214L196 96L268 214Z" fill="#0B5246"/>
+      <path d="M172 132L196 96L219 132C212 142 205 134 196 139C187 144 179 125 172 132Z" fill="#F8F5EF"/>
+      <!-- temple on slope -->
+      <g stroke="#153C33" stroke-width="1.6" stroke-linejoin="round">
+        <path d="M236 190H276L271 180H241Z" fill="#C74832"/>
+        <path d="M240 180H272V168H240Z" fill="#9C3626"/>
+        <path d="M234 168C244 172 250 172 260 168C266 170 272 170 278 168L268 158H244Z" fill="#C74832"/>
+        <path d="M256 150L264 158H248Z" fill="#E5DBC8"/>
+      </g>
+      <!-- sakura tree -->
+      <g>
+        <path d="M136 214C140 200 142 188 140 176" stroke="#153C33" stroke-width="4" stroke-linecap="round" fill="none"/>
+        <circle cx="134" cy="170" r="12" fill="#E8B4A8"/>
+        <circle cx="148" cy="164" r="10" fill="#F0C8BE"/>
+        <circle cx="142" cy="180" r="9" fill="#E8B4A8"/>
+      </g>
+      <g fill="#E8B4A8">
+        <circle cx="162" cy="158" r="2.5"/><circle cx="170" cy="172" r="2"/><circle cx="156" cy="186" r="2"/>
+      </g>
+    </g>
+
+    <!-- ===== left : KOREA — city energy, calm tone ===== -->
+    <g>
+      <path d="M0 214C20 204 34 190 40 168L52 214Z" fill="#153C33" opacity=".35"/>
+      <!-- skyline -->
+      <g fill="#153C33">
+        <rect x="6" y="150" width="18" height="64" rx="2"/>
+        <rect x="30" y="132" width="20" height="82" rx="2"/>
+        <rect x="56" y="158" width="16" height="56" rx="2"/>
+        <rect x="78" y="142" width="18" height="72" rx="2"/>
+      </g>
+      <!-- windows -->
+      <g fill="#F8F5EF" opacity=".9">
+        <rect x="10" y="156" width="4" height="5"/><rect x="17" y="164" width="4" height="5"/><rect x="10" y="176" width="4" height="5"/>
+        <rect x="35" y="140" width="4" height="5"/><rect x="42" y="150" width="4" height="5"/><rect x="35" y="162" width="4" height="5"/><rect x="42" y="176" width="4" height="5"/>
+        <rect x="60" y="164" width="4" height="5"/><rect x="60" y="178" width="4" height="5"/><rect x="66" y="172" width="4" height="5"/>
+        <rect x="83" y="150" width="4" height="5"/><rect x="89" y="160" width="4" height="5"/><rect x="83" y="174" width="4" height="5"/>
+      </g>
+      <!-- N tower -->
+      <g>
+        <path d="M40 132V104" stroke="#C74832" stroke-width="4" stroke-linecap="round"/>
+      </g>
+      <!-- equalizer rising from city -->
+      <g stroke-linecap="round">
+        <path d="M12 132V112" stroke="#C74832" stroke-width="6"/>
+        <path d="M24 126V96" stroke="#0B5246" stroke-width="6"/>
+        <path d="M62 140V120" stroke="#0B5246" stroke-width="6" opacity=".65"/>
+        <path d="M74 134V108" stroke="#C74832" stroke-width="6"/>
+        <path d="M88 128V112" stroke="#0B5246" stroke-width="6" opacity=".65"/>
+      </g>
+      <!-- music notes drifting -->
+      <g fill="#153C33">
+        <circle cx="120" cy="78" r="4"/><path d="M124 78V58L136 54V74" stroke="#153C33" stroke-width="3" fill="none"/><circle cx="132" cy="74" r="4"/>
+        <circle cx="34" cy="60" r="3"/><path d="M37 60V44" stroke="#153C33" stroke-width="2.5"/>
+      </g>
+    </g>
+
+    <!-- ===== sea joining the three ===== -->
+    <path d="M0 214C60 202 120 222 195 212C270 202 330 224 390 208V280H0Z" fill="url(#seaTone)"/>
+    <!-- torii standing in the water -->
+    <g>
+      <path d="M164 236V196M196 236V196" stroke="#C74832" stroke-width="7" stroke-linecap="round"/>
+      <path d="M152 200C166 192 194 192 208 200L206 188C192 182 168 182 154 188Z" fill="#C74832" stroke="#153C33" stroke-width="1.5"/>
+      <path d="M160 212H200V206H160Z" fill="#C74832"/>
+      <path d="M180 196V188" stroke="#C74832" stroke-width="5"/>
+      <!-- reflection -->
+      <path d="M164 244V258M196 244V258" stroke="#C74832" stroke-width="5" stroke-linecap="round" opacity=".3"/>
+    </g>
+    <!-- wave highlights -->
+    <g stroke="#0B5246" stroke-width="2.5" stroke-linecap="round" opacity=".45">
+      <path d="M22 236C34 230 46 230 58 236"/>
+      <path d="M92 250C104 244 116 244 128 250"/>
+      <path d="M236 244C248 238 260 238 272 244"/>
+      <path d="M310 254C322 248 334 248 346 254"/>
+      <path d="M330 232C340 227 350 227 360 232"/>
+    </g>
+    <!-- boat -->
+    <g>
+      <path d="M282 252C290 258 306 258 314 252L310 246H286Z" fill="#153C33"/>
+      <path d="M298 246V228L310 240H298" fill="#E5DBC8" stroke="#153C33" stroke-width="1.5"/>
+    </g>
   </g>
 </svg>
