@@ -8,6 +8,12 @@ abstract interface class LineSpeechEngine {
   Future<String?> getDefaultEngine();
   Future<List<String>> getEngines();
   Future<void> setEngine(String engine);
+  Future<void> setIosAudioCategory(
+    IosTextToSpeechAudioCategory category,
+    List<IosTextToSpeechAudioCategoryOptions> options, [
+    IosTextToSpeechAudioMode mode = IosTextToSpeechAudioMode.defaultMode,
+  ]);
+  Future<void> setSharedInstance(bool sharedSession);
   Future<void> stop();
   Future<bool> setLanguage(String language);
   Future<void> setPitch(double pitch);
@@ -34,6 +40,20 @@ class FlutterTtsSpeechEngine implements LineSpeechEngine {
 
   @override
   Future<void> setEngine(String engine) async => _tts.setEngine(engine);
+
+  @override
+  Future<void> setIosAudioCategory(
+    IosTextToSpeechAudioCategory category,
+    List<IosTextToSpeechAudioCategoryOptions> options, [
+    IosTextToSpeechAudioMode mode = IosTextToSpeechAudioMode.defaultMode,
+  ]) async {
+    await _tts.setIosAudioCategory(category, options, mode);
+  }
+
+  @override
+  Future<void> setSharedInstance(bool sharedSession) async {
+    await _tts.setSharedInstance(sharedSession);
+  }
 
   @override
   Future<void> stop() async => _tts.stop();
@@ -64,13 +84,16 @@ class SystemLineSpeaker implements LineSpeaker {
     LineSpeechEngine? engine,
     FlutterTts? tts,
     bool? isAndroid,
+    bool? isIos,
   }) : assert(engine == null || tts == null),
        _engine = engine ?? FlutterTtsSpeechEngine(tts),
        _isAndroid =
-           isAndroid ?? defaultTargetPlatform == TargetPlatform.android;
+           isAndroid ?? defaultTargetPlatform == TargetPlatform.android,
+       _isIos = isIos ?? defaultTargetPlatform == TargetPlatform.iOS;
 
   final LineSpeechEngine _engine;
   final bool _isAndroid;
+  final bool _isIos;
   String? _activeEngine;
   int _request = 0;
   Future<void> _tail = Future<void>.value();
@@ -130,6 +153,17 @@ class SystemLineSpeaker implements LineSpeaker {
     }
   }
 
+  Future<void> _prepareAudioSession() async {
+    if (!_isIos) return;
+
+    await _engine.setIosAudioCategory(
+      IosTextToSpeechAudioCategory.playback,
+      const [],
+      IosTextToSpeechAudioMode.spokenAudio,
+    );
+    await _engine.setSharedInstance(true);
+  }
+
   @override
   Future<void> speak({
     required String text,
@@ -140,6 +174,8 @@ class SystemLineSpeaker implements LineSpeaker {
     final operation = _tail.then((_) async {
       if (request != _request) return;
       await _engine.stop();
+      if (request != _request) return;
+      await _prepareAudioSession();
       if (request != _request) return;
       final languageReady = await _prepareLanguage(country.ttsLocale, request);
       if (request != _request) return;

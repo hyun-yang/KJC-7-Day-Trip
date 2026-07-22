@@ -48,7 +48,7 @@ dev_dependencies:
 
 flutter_launcher_icons:
   android: true
-  ios: false
+  ios: true
   image_path: assets/branding/kjc_launcher_icon.png
   adaptive_icon_background: '#FFFFFF'
   adaptive_icon_foreground: assets/branding/kjc_launcher_foreground.png

@@ -119,6 +119,31 @@ void main() {
     expect(engine.texts, ['こんにちは']);
   });
 
+  test('iOS configures a playback audio session before speaking', () async {
+    final engine = ControllableSpeechEngine();
+    final speaker = SystemLineSpeaker(engine: engine, isIos: true);
+
+    final playback = speaker.speak(
+      text: '안녕하세요',
+      country: Country.korea,
+      speaker: 1,
+    );
+    await Future<void>.delayed(Duration.zero);
+    engine.stopCalls.single.complete();
+    await playback;
+
+    expect(engine.audioCategories, [
+      (
+        IosTextToSpeechAudioCategory.playback,
+        const <IosTextToSpeechAudioCategoryOptions>[],
+        IosTextToSpeechAudioMode.spokenAudio,
+      ),
+    ]);
+    expect(engine.sharedInstanceCalls, [true]);
+    expect(engine.languages, ['ko-KR']);
+    expect(engine.texts, ['안녕하세요']);
+  });
+
   test(
     'successful fallback remains the active engine for later requests',
     () async {
@@ -544,6 +569,15 @@ class ControllableSpeechEngine implements LineSpeechEngine {
   final selectedEngines = <String>[];
   final pitches = <double>[];
   final texts = <String>[];
+  final audioCategories =
+      <
+        (
+          IosTextToSpeechAudioCategory,
+          List<IosTextToSpeechAudioCategoryOptions>,
+          IosTextToSpeechAudioMode,
+        )
+      >[];
+  final sharedInstanceCalls = <bool>[];
   String? currentEngine;
   int _languageResultIndex = 0;
   int _engineSelectionIndex = 0;
@@ -586,6 +620,20 @@ class ControllableSpeechEngine implements LineSpeechEngine {
 
   @override
   Future<void> setPitch(double pitch) async => pitches.add(pitch);
+
+  @override
+  Future<void> setIosAudioCategory(
+    IosTextToSpeechAudioCategory category,
+    List<IosTextToSpeechAudioCategoryOptions> options, [
+    IosTextToSpeechAudioMode mode = IosTextToSpeechAudioMode.defaultMode,
+  ]) async {
+    audioCategories.add((category, options, mode));
+  }
+
+  @override
+  Future<void> setSharedInstance(bool sharedSession) async {
+    sharedInstanceCalls.add(sharedSession);
+  }
 
   @override
   Future<bool> speak(String text) async {

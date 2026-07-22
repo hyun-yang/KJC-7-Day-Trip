@@ -37,7 +37,7 @@ Based on that context, the app generates practical, real-world expressions so yo
 
 ## Tech Stack
 
-- **Frontend:** Mobile app (Android)
+- **Frontend:** Mobile app (Android and iOS)
 - **AI/LLM:** OpenAI GPT-5.6
 - **Built for:** OpenAI Build Week
 
@@ -45,7 +45,7 @@ Based on that context, the app generates practical, real-world expressions so yo
 
 ### Prerequisites
 
-- Android device or emulator
+- Android device/emulator or iOS device/simulator (iOS 13.0+)
 - Internet connection (OpenAI phrase generation)
 
 ### Installation
@@ -54,6 +54,11 @@ Based on that context, the app generates practical, real-world expressions so yo
 git clone https://github.com/hyun-yang/KJC-7-Day-Trip
 cd KJC-7-Day-Trip
 # Follow platform-specific build instructions
+flutter pub get
+flutter run
+
+# iOS (requires macOS, Xcode, and an Apple development team for a physical device)
+flutter build ios
 ```
 
 ## Usage

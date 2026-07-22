@@ -129,7 +129,9 @@ final orchestratorProvider = FutureProvider<GenerationOrchestrator>((
 });
 
 final lineSpeakerProvider = Provider<LineSpeaker>(
-  (ref) => Platform.isAndroid ? SystemLineSpeaker() : const SilentLineSpeaker(),
+  (ref) => Platform.isAndroid || Platform.isIOS
+      ? SystemLineSpeaker()
+      : const SilentLineSpeaker(),
 );
 
 typedef GenerationAction = Future<int> Function(GenerationSelection selection);
